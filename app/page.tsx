@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, FileCode, Github, Mail, Shield, Sparkles, Zap } from "lucide-react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { easeIn, motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
 
@@ -13,7 +13,9 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
+      staggerChildren: 0.1,
+      duration:0.6,
+      ease: "easeOut",
     }
   }
 };
@@ -144,6 +146,7 @@ export default function Home() {
             <motion.div 
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 glow"
               variants={itemVariants}
+             
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
