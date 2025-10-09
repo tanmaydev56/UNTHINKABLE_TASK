@@ -1,84 +1,259 @@
+"use client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ArrowRight, FileCode, Github, Mail, Shield, Sparkles, Zap } from "lucide-react";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { useInView } from "framer-motion";
+import { useRef } from "react";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
+
+const slideInVariants = {
+  hidden: { opacity: 0, x: -50 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut"
+    }
+  }
+};
+
+const scaleVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut"
+    }
+  }
+};
+
+const floatVariants = {
+  floating: {
+    y: [-10, 10],
+    transition: {
+      y: {
+        repeat: Infinity,
+        repeatType: "reverse",
+        duration: 3,
+        ease: "easeInOut"
+      }
+    }
+  }
+};
+
+const glowVariants = {
+  initial: {
+    boxShadow: "0 0 20px rgba(74, 144, 226, 0.4), 0 0 40px rgba(74, 144, 226, 0.2)"
+  },
+  hover: {
+    boxShadow: "0 0 30px rgba(74, 144, 226, 0.6), 0 0 60px rgba(74, 144, 226, 0.3)",
+    scale: 1.05,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut"
+    }
+  }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const textReveal = {
+  hidden: { opacity: 0, y: 50 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut"
+    }
+  }
+};
 
 export default function Home() {
-  const features = [
-    {
-      icon: Sparkles,
-      title: "AI-Powered Analysis",
-      description: "Advanced AI algorithms analyze your code for best practices",
-    },
-    {
-      icon: Shield,
-      title: "Security Focused",
-      description: "Detect potential vulnerabilities and security issues",
-    },
-    {
-      icon: Zap,
-      title: "Lightning Fast",
-      description: "Get comprehensive reviews in seconds, not hours",
-    },
-  ];
+  const featuresRef = useRef(null);
+  const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
+
+  const statsRef = useRef(null);
+  const statsInView = useInView(statsRef, { once: true });
+
+ const features = [
+  {
+    icon: Sparkles,
+    title: "AI-Powered Analysis",
+    description: "Advanced AI algorithms analyze your code for best", // 56
+  },
+  {
+    icon: Shield,
+    title: "Security Focused",
+    description: "Detect vulnerabilities and security issues quickly", // 56
+  },
+  {
+    icon: Zap,
+    title: "Lightning Fast",
+    description: "Get comprehensive code reviews in seconds, not hours", // 56
+  },
+];
+
   return (
-     <div className="min-h-screen animated-gradient">
+    <div className="min-h-screen animated-gradient">
       {/* Hero Section */}
       <div className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center">
+          <motion.div 
+            className="text-center"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+          >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 glow">
+            <motion.div 
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 glow"
+              variants={itemVariants}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
               <Sparkles className="w-4 h-4 text-accent" />
               <span className="text-sm text-foreground">Powered by Advanced AI</span>
-            </div>
+            </motion.div>
 
             {/* Title */}
-            <h1 className="text-5xl md:text-7xl text-foreground mb-6 tracking-tight">
+            <motion.h1 
+              className="text-5xl md:text-7xl text-foreground mb-6 tracking-tight"
+              variants={textReveal}
+            >
               AI Code Review
               <br />
-              <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              <motion.span 
+                className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"
+                initial={{ backgroundPosition: "200% center" }}
+                animate={{ backgroundPosition: "-200% center" }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                style={{
+                  backgroundSize: "200% auto"
+                }}
+              >
                 Assistant
-              </span>
-            </h1>
+              </motion.span>
+            </motion.h1>
 
             {/* Subtitle */}
-            <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+            <motion.p 
+              className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+              variants={itemVariants}
+            >
               Upload. Analyze. Improve your code instantly.
               <br />
               Get intelligent suggestions to write better, cleaner code.
-            </p>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap gap-4 justify-center">
-              <Button
-                size="lg"
-                className="glow group px-8 py-6 bg-primary hover:bg-primary/90"
-                // onClick={() => onNavigate("upload")}
+            <motion.div 
+              className="flex flex-wrap gap-4 justify-center"
+              variants={itemVariants}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Get Started
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 py-6 glass hover:bg-secondary/20"
+                <Button
+                  size="lg"
+                  className="glow group px-8 py-6 bg-primary hover:bg-primary/90"
+                >
+                  Get Started
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                View Documentation
-              </Button>
-            </div>
-          </div>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="px-8 py-6 glass hover:bg-secondary/20"
+                >
+                  View Documentation
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
 
           {/* Code Preview Mockup */}
-          <div className="mt-20 relative">
-            <div className="glass dark:bg-gray-900/40 dark:border-gray-500/20 rounded-2xl p-8 max-w-4xl mx-auto glow">
+          <motion.div 
+            className="mt-20 relative"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <motion.div 
+              className="glass dark:bg-gray-900/40 dark:border-gray-500/20 rounded-2xl p-8 max-w-4xl mx-auto glow"
+              whileHover={{ 
+                scale: 1.02,
+                transition: { duration: 0.3 }
+              }}
+              variants={floatVariants}
+              animate="floating"
+            >
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 rounded-full bg-destructive"></div>
-                <div className="w-3 h-3 rounded-full bg-[#F59E0B]"></div>
-                <div className="w-3 h-3 rounded-full bg-accent"></div>
+                <motion.div 
+                  className="w-3 h-3 rounded-full bg-destructive"
+                  whileHover={{ scale: 1.2 }}
+                ></motion.div>
+                <motion.div 
+                  className="w-3 h-3 rounded-full bg-[#F59E0B]"
+                  whileHover={{ scale: 1.2 }}
+                ></motion.div>
+                <motion.div 
+                  className="w-3 h-3 rounded-full bg-accent"
+                  whileHover={{ scale: 1.2 }}
+                ></motion.div>
               </div>
               <div className="space-y-3 font-mono text-sm">
-                <div className="flex gap-4">
+                <motion.div 
+                  className="flex gap-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 }}
+                >
                   <span className="text-muted-foreground select-none">1</span>
                   <span className="text-foreground/80">
                     <span className="text-[#C792EA]">function</span>{" "}
@@ -87,8 +262,13 @@ export default function Home() {
                     <span className="text-[#F78C6C]">data</span>
                     <span className="text-foreground/60">) {"{"}</span>
                   </span>
-                </div>
-                <div className="flex gap-4">
+                </motion.div>
+                <motion.div 
+                  className="flex gap-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1 }}
+                >
                   <span className="text-muted-foreground select-none">2</span>
                   <span className="text-foreground/80 pl-8">
                     <span className="text-[#C792EA]">return</span> data.<span className="text-accent">filter</span>
@@ -96,14 +276,36 @@ export default function Home() {
                     <span className="text-[#F78C6C]">item</span> <span className="text-[#89DDFF]">{"=>"}</span> item
                     <span className="text-foreground/60">);</span>
                   </span>
-                </div>
-                <div className="flex gap-4">
+                </motion.div>
+                <motion.div 
+                  className="flex gap-4"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.2 }}
+                >
                   <span className="text-muted-foreground select-none">3</span>
                   <span className="text-foreground/60">{"}"}</span>
-                </div>
-                <div className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-lg">
+                </motion.div>
+                <motion.div 
+                  className="mt-6 p-4 bg-primary/10 border border-primary/30 rounded-lg"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.4 }}
+                  whileHover={{ scale: 1.02 }}
+                >
                   <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    <motion.div
+                      animate={{ 
+                        rotate: [0, 10, -10, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatDelay: 5
+                      }}
+                    >
+                      <Sparkles className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                    </motion.div>
                     <div>
                       <p className="text-sm text-primary mb-1">AI Suggestion</p>
                       <p className="text-sm text-foreground/70">
@@ -111,90 +313,180 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Floating Elements */}
-            <div className="absolute -top-10 -left-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-accent/20 rounded-full blur-3xl"></div>
-          </div>
+            <motion.div 
+              className="absolute -top-10 -left-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            ></motion.div>
+            <motion.div 
+              className="absolute -bottom-10 -right-10 w-40 h-40 bg-accent/20 rounded-full blur-3xl"
+              animate={{
+                scale: [1.2, 1, 1.2],
+                opacity: [0.5, 0.3, 0.5],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: 2
+              }}
+            ></motion.div>
+          </motion.div>
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="py-20 px-4 sm:px-6 lg:px-8">
+      <div ref={featuresRef} className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={featuresInView ? "visible" : "hidden"}
+          >
             {features.map((feature, index) => (
-              <Card
+              <motion.div
                 key={index}
-                className="glass p-8 hover:glow transition-all duration-300 cursor-pointer"
+                variants={scaleVariants}
+                whileHover={{ 
+                  scale: 1.05,
+                  y: -10,
+                  transition: { duration: 0.3 }
+                }}
+                whileTap={{ scale: 0.95 }}
               >
-                <div className="p-3 rounded-lg bg-primary/10 w-fit mb-4">
-                  <feature.icon className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className="text-foreground mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
-              </Card>
+                <Card className="glass p-8 hover:glow transition-all duration-300 cursor-pointer">
+                  <motion.div 
+                    className="p-3 rounded-lg bg-primary/10 w-fit mb-4"
+                    whileHover={{ 
+                      scale: 1.1,
+                      rotate: 5
+                    }}
+                  >
+                    <feature.icon className="w-6 h-6 text-primary" />
+                  </motion.div>
+                  <h3 className="text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Stats Section */}
-      <div className="py-20 px-4 sm:px-6 lg:px-8">
+      <div ref={statsRef} className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="glass dark:bg-gray-900/40 dark:border-gray-500/20 rounded-2xl p-12 glow">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-              <div>
-                <div className="text-4xl text-primary mb-2">10k+</div>
-                <div className="text-muted-foreground">Code Reviews</div>
-              </div>
-              <div>
-                <div className="text-4xl text-accent mb-2">50+</div>
-                <div className="text-muted-foreground">Languages Supported</div>
-              </div>
-              <div>
-                <div className="text-4xl text-primary mb-2">99.9%</div>
-                <div className="text-muted-foreground">Accuracy Rate</div>
-              </div>
-            </div>
-          </div>
+          <motion.div 
+            className="glass dark:bg-gray-900/40 dark:border-gray-500/20 rounded-2xl p-12 glow"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={statsInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.6 }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center"
+              variants={containerVariants}
+              initial="hidden"
+              animate={statsInView ? "visible" : "hidden"}
+            >
+              {[
+                { value: "10k+", label: "Code Reviews" },
+                { value: "50+", label: "Languages Supported" },
+                { value: "99.9%", label: "Accuracy Rate" }
+              ].map((stat, index) => (
+                <motion.div key={index} variants={itemVariants}>
+                  <motion.div 
+                    className="text-4xl text-primary mb-2"
+                    initial={{ scale: 0 }}
+                    animate={statsInView ? { scale: 1 } : { scale: 0 }}
+                    transition={{ 
+                      delay: index * 0.2 + 0.3,
+                      type: "spring",
+                      stiffness: 100
+                    }}
+                  >
+                    {stat.value}
+                  </motion.div>
+                  <div className="text-muted-foreground">{stat.label}</div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
       </div>
 
       {/* Footer */}
       <footer className="border-t border-border/50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+          <motion.div 
+            className="flex flex-col md:flex-row justify-between items-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
             <div className="flex items-center gap-2">
               <FileCode className="w-5 h-5 text-primary" />
               <span className="text-foreground">Code Review Assistant</span>
             </div>
             <div className="flex gap-8">
-              <button className="text-muted-foreground hover:text-primary transition-colors">
-                About
-              </button>
-              <button className="text-muted-foreground hover:text-primary transition-colors">
-                Docs
-              </button>
-              <button className="text-muted-foreground hover:text-primary transition-colors">
-                Contact
-              </button>
+              {["About", "Docs", "Contact"].map((item, index) => (
+                <motion.button 
+                  key={item}
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  {item}
+                </motion.button>
+              ))}
             </div>
             <div className="flex gap-4">
-              <button className="p-2 rounded-lg glass hover:bg-secondary/20 transition-colors">
-                <Github className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <button className="p-2 rounded-lg glass hover:bg-secondary/20 transition-colors">
-                <Mail className="w-5 h-5 text-muted-foreground" />
-              </button>
+              {[Github, Mail].map((Icon, index) => (
+                <motion.button 
+                  key={index}
+                  className="p-2 rounded-lg glass hover:bg-secondary/20 transition-colors"
+                  whileHover={{ 
+                    scale: 1.1,
+                    rotate: 5
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1 + 0.3 }}
+                  viewport={{ once: true }}
+                >
+                  <Icon className="w-5 h-5 text-muted-foreground" />
+                </motion.button>
+              ))}
             </div>
-          </div>
-          <div className="text-center mt-8 text-sm text-muted-foreground">
+          </motion.div>
+          <motion.div 
+            className="text-center mt-8 text-sm text-muted-foreground"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            viewport={{ once: true }}
+          >
             © 2025 Code Review Assistant. All rights reserved.
-          </div>
+          </motion.div>
         </div>
       </footer>
     </div>
