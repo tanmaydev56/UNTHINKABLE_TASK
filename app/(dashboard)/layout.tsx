@@ -1,25 +1,28 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+
+"use client";
+import { useRouter } from "next/navigation";
 import "../globals.css";
+import Navbar from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-
-export default function DashBoardLayout({
+export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
+
+ 
+  const handleNavigate = (page: string) => {
+    router.push(`/${page}`);
+  };
+
   return (
-    <div>       {children}
-     </div> 
+    <>
+     
+      <Navbar currentPage="dashboard" onNavigate={handleNavigate} />
+
+      
+      <main className="pt-16">{children}</main>
+    </>
   );
 }

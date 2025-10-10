@@ -6,6 +6,7 @@ import Image from "next/image";
 import { easeIn, motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { useRef } from "react";
+import { useRouter } from "next/navigation";
 
 // Animation variants
 const containerVariants = {
@@ -32,17 +33,7 @@ const itemVariants = {
   }
 };
 
-const slideInVariants = {
-  hidden: { opacity: 0, x: -50 },
-  visible: {
-    opacity: 1,
-    x: 0,
-    transition: {
-      duration: 0.8,
-      ease: "easeOut"
-    }
-  }
-};
+
 
 const scaleVariants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -70,19 +61,6 @@ const floatVariants = {
   }
 };
 
-const glowVariants = {
-  initial: {
-    boxShadow: "0 0 20px rgba(74, 144, 226, 0.4), 0 0 40px rgba(74, 144, 226, 0.2)"
-  },
-  hover: {
-    boxShadow: "0 0 30px rgba(74, 144, 226, 0.6), 0 0 60px rgba(74, 144, 226, 0.3)",
-    scale: 1.05,
-    transition: {
-      duration: 0.3,
-      ease: "easeOut"
-    }
-  }
-};
 
 const staggerContainer = {
   hidden: { opacity: 0 },
@@ -109,10 +87,12 @@ const textReveal = {
 export default function Home() {
   const featuresRef = useRef(null);
   const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
-
+  const router = useRouter();
   const statsRef = useRef(null);
   const statsInView = useInView(statsRef, { once: true });
-
+  const funClick = () =>{
+  router.push('/upload');
+}
  const features = [
   {
     icon: Sparkles,
@@ -200,6 +180,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   className="glow group px-8 py-6 bg-primary hover:bg-primary/90"
+                  onClick={funClick}
                 >
                   Get Started
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
