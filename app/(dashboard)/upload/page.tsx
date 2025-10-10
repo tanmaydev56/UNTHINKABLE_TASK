@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import { Upload, File, X, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -100,25 +99,29 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     onNavigate("review");
   };
 
+  const resetUploads = () => {
+    setUploadedFiles([]);
+  };
+
   return (
-    <div className=" pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Upload Area */}
           <div className="lg:col-span-2 space-y-6">
-            <div>
+            <div className="text-center lg:text-left">
               <h1 className="text-3xl text-foreground mb-2">Upload Code Files</h1>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground text-lg">
                 Upload your source code files for AI-powered analysis
               </p>
             </div>
 
             {/* Drop Zone */}
             <Card
-              className={`glass p-12 border-2 border-dashed transition-all cursor-pointer ${
+              className={`glass p-8 border-2 border-dashed transition-all cursor-pointer ${
                 isDragging
-                  ? "border-primary bg-primary/5 glow"
-                  : "border-border/50 hover:border-primary/50"
+                  ? "border-primary bg-primary/10 glow"
+                  : "border-border/50 hover:border-primary/50 hover:bg-primary/5"
               }`}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -129,76 +132,137 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                 <div className="inline-flex p-4 rounded-full bg-primary/10 mb-4">
                   <Upload className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="text-foreground mb-2">Drop files here or click to browse</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <h3 className="text-xl text-foreground mb-3 font-medium">
+                  Drop files here or click to browse
+                </h3>
+                <p className="text-muted-foreground mb-6">
                   Supports .js, .py, .java, .cpp, .ts, .go, and more
                 </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button 
+                    variant="outline" 
+                    className="glass border-border/50"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      document.getElementById("file-input")?.click();
+                    }}
+                  >
+                    Browse Files
+                  </Button>
+                  {uploadedFiles.length > 0 && (
+                    <Button 
+                      variant="outline" 
+                      className="glass border-destructive/50 text-destructive hover:bg-destructive/10"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetUploads();
+                      }}
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </div>
                 <input
                   id="file-input"
                   type="file"
                   multiple
                   className="hidden"
                   onChange={handleFileInput}
-                  accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.go,.rb,.php,.sql,.css,.html"
+                  accept=".js,.jsx,.ts,.tsx,.py,.java,.cpp,.c,.go,.rb,.php,.sql,.css,.html,.xml,.json,.yaml,.yml"
                 />
               </div>
             </Card>
 
-            {/* Uploaded Files List */}
+            {/* Upload Progress */}
             {uploadedFiles.length > 0 && (
               <Card className="glass p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-foreground">Uploaded Files</h3>
-                  <span className="text-sm text-muted-foreground">
-                    {uploadedFiles.length} file(s)
-                  </span>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl text-foreground font-medium">Upload Progress</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">
+                      {uploadedFiles.filter(f => f.status === "completed").length} of {uploadedFiles.length} complete
+                    </span>
+                    <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                  </div>
                 </div>
+                
                 <div className="space-y-4">
                   {uploadedFiles.map((file) => (
                     <div
                       key={file.id}
-                      className="flex items-center gap-4 p-4 rounded-lg bg-secondary/30 border border-border/30"
+                      className="flex items-center gap-4 p-4 rounded-lg bg-secondary/20 border border-border/30 hover:border-primary/30 transition-all"
                     >
-                      <div className="p-2 rounded-lg bg-primary/10">
-                        <File className="w-5 h-5 text-primary" />
+                      <div className={`p-2 rounded-lg ${
+                        file.status === "completed" ? "bg-accent/20" : 
+                        file.status === "error" ? "bg-destructive/20" : "bg-primary/20"
+                      }`}>
+                        <File className={`w-5 h-5 ${
+                          file.status === "completed" ? "text-accent" : 
+                          file.status === "error" ? "text-destructive" : "text-primary"
+                        }`} />
                       </div>
+                      
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between mb-2">
-                          <p className="text-sm text-foreground truncate">{file.name}</p>
-                          <span className="text-xs text-muted-foreground">{file.size}</span>
+                          <p className="text-sm font-medium text-foreground truncate">
+                            {file.name}
+                          </p>
+                          <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
+                            {file.size}
+                          </span>
                         </div>
+                        
                         {file.status === "uploading" && (
-                          <Progress value={file.progress} className="h-1" />
-                        )}
-                        {file.status === "completed" && (
-                          <div className="flex items-center gap-2 text-xs text-accent">
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>Upload complete</span>
+                          <div className="space-y-2">
+                            <Progress value={file.progress} className="h-2" />
+                            <p className="text-xs text-muted-foreground">
+                              Uploading... {file.progress}%
+                            </p>
                           </div>
                         )}
+                        
+                        {file.status === "completed" && (
+                          <div className="flex items-center gap-2 text-sm text-accent">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>Ready for analysis</span>
+                          </div>
+                        )}
+                        
                         {file.status === "error" && (
-                          <div className="flex items-center gap-2 text-xs text-destructive">
-                            <AlertCircle className="w-3 h-3" />
-                            <span>Upload failed</span>
+                          <div className="flex items-center gap-2 text-sm text-destructive">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>Upload failed - please try again</span>
                           </div>
                         )}
                       </div>
+                      
                       <button
-                        onClick={() => removeFile(file.id)}
-                        className="p-1 rounded hover:bg-destructive/20 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(file.id);
+                        }}
+                        className="p-2 rounded-lg hover:bg-destructive/20 transition-colors group"
                       >
-                        <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+                        <X className="w-4 h-4 text-muted-foreground group-hover:text-destructive" />
                       </button>
                     </div>
                   ))}
                 </div>
-                <Button
-                  className="w-full mt-6 glow"
-                  onClick={analyzeCode}
-                  disabled={uploadedFiles.some((f) => f.status !== "completed")}
-                >
-                  Analyze Code
-                </Button>
+
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    className="flex-1 glow"
+                    onClick={analyzeCode}
+                    disabled={uploadedFiles.some((f) => f.status !== "completed")}
+                    size="lg"
+                  >
+                    {uploadedFiles.some(f => f.status === "uploading") ? (
+                      <>Analyzing Code...</>
+                    ) : (
+                      <>Analyze Code ({uploadedFiles.length} files)</>
+                    )}
+                  </Button>
+                </div>
               </Card>
             )}
           </div>
@@ -206,39 +270,53 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           {/* Upload History Sidebar */}
           <div className="lg:col-span-1">
             <Card className="glass p-6 sticky top-24">
-              <div className="flex items-center gap-2 mb-6">
-                <Clock className="w-5 h-5 text-primary" />
-                <h3 className="text-foreground">Upload History</h3>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl text-foreground font-medium">Upload History</h3>
+                  <p className="text-sm text-muted-foreground">Recent file uploads</p>
+                </div>
               </div>
-              <ScrollArea className="h-[600px] pr-4">
+              
+              <ScrollArea className="h-[500px]">
                 <div className="space-y-3">
                   {uploadHistory.map((item) => (
                     <button
                       key={item.id}
                       onClick={() => onNavigate("review")}
-                      className="w-full p-4 rounded-lg bg-secondary/30 border border-border/30 hover:border-primary/50 transition-all text-left group"
+                      className="w-full p-4 rounded-lg bg-secondary/20 border border-border/30 hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="p-2 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                        <div className="p-2 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
                           <File className="w-4 h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground truncate mb-1">
+                          <p className="text-sm font-medium text-foreground truncate mb-1">
                             {item.fileName}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{item.language}</span>
-                            <span>•</span>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary">
+                              {item.language}
+                            </span>
                             <span>{item.date}</span>
                           </div>
                         </div>
                         {item.status === "completed" && (
-                          <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />
+                          <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
                         )}
                       </div>
                     </button>
                   ))}
                 </div>
+                
+                {uploadHistory.length === 0 && (
+                  <div className="text-center py-8">
+                    <File className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                    <p className="text-muted-foreground">No upload history yet</p>
+                  </div>
+                )}
               </ScrollArea>
             </Card>
           </div>
