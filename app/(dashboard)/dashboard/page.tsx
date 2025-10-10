@@ -47,7 +47,9 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
       default: return "bg-muted";
     }
   };
-
+  const handleReiview = () => {
+    onNavigate("report");
+  }
   const getLanguageColor = (language: string) => {
     const colors: { [key: string]: string } = {
       JavaScript: "bg-[#F7DF1E]/20 text-[#F7DF1E] border-[#F7DF1E]/30",
@@ -181,7 +183,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" className="glass border-border/50" onClick={() => onNavigate("review")}>
+                  <Button variant="outline" className="glass border-border/50" onClick={handleReiview}>
                     <Eye className="w-4 h-4 mr-2" />View Report
                   </Button>
                   <Button

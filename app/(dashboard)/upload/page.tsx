@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
-import { Upload, File, X, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { Upload, File, X, Clock, CheckCircle2, AlertCircle, BabyIcon, ArrowBigRight, ArrowRight, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useRouter } from "next/navigation";
 
 interface UploadPageProps {
   onNavigate: (page: string) => void;
@@ -29,7 +30,7 @@ interface HistoryItem {
 export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-
+  const router = useRouter();
   const uploadHistory: HistoryItem[] = [
     { id: "1", fileName: "api-handler.js", date: "2 hours ago", language: "JavaScript", status: "completed" },
     { id: "2", fileName: "auth.py", date: "5 hours ago", language: "Python", status: "completed" },
@@ -102,6 +103,9 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   const resetUploads = () => {
     setUploadedFiles([]);
   };
+  const BackFun = () =>{
+    router.push('/');
+    }
 
   return (
     <div className="min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8">
@@ -109,6 +113,14 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Upload Area */}
           <div className="lg:col-span-2 space-y-6">
+          <Button
+              variant="outline"
+             className="flex"
+              onClick={BackFun}
+            >
+              
+              <ArrowLeft/>
+            </Button>
             <div className="text-center lg:text-left">
               <h1 className="text-3xl text-foreground mb-2">Upload Code Files</h1>
               <p className="text-muted-foreground text-lg">
