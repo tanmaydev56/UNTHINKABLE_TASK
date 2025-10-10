@@ -19,10 +19,8 @@ export default function DashboardLayout({
   return (
     <>
      
-      <Navbar currentPage="dashboard" onNavigate={handleNavigate} />
-
-      
-      <main className="pt-16">{children}</main>
+      <Navbar onNavigate={handleNavigate} />
+      {children}
     </>
   );
 }

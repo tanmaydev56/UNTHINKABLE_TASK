@@ -4,11 +4,11 @@ import { Code2, Menu } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface NavbarProps {
-  currentPage: string;
+
   onNavigate: (page: string) => void;
 }
 
-export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
+export default function Navbar({  onNavigate }: NavbarProps) {
   const navItems = [
     { id: "upload", label: "Upload" },
     {id: "dashboard", label: "Dashboard" },
@@ -39,9 +39,8 @@ export default function Navbar({ currentPage, onNavigate }: NavbarProps) {
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
                 className={`px-4 py-2 rounded-lg transition-all ${
-                  currentPage === item.id
-                    ? "bg-primary/20 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                
+                     "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
                 }`}
               >
                 {item.label}

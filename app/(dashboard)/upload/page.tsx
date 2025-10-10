@@ -101,7 +101,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   };
 
   return (
-    <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className=" pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Upload Area */}

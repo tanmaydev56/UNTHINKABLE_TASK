@@ -40,7 +40,7 @@ const toggleDarkMode = (checked: boolean) => {
     if (!mounted) return null; 
 
   return (
-    <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
