@@ -3,7 +3,9 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini with correct configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
+// app/api/documents/route.ts
+export const runtime = 'nodejs';
+export const maxDuration = 60; // seconds
 export async function POST(request: NextRequest) {
   try {
     const { documentId, content, language, fileName } = await request.json();

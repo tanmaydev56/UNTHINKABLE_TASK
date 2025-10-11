@@ -165,7 +165,12 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           status: "in-progress"
         }),
       });
-
+      if (!response.ok) {
+  const { error, stack } = await response.json();
+  console.error('Live error:', error, stack); // ← open browser console on the deployed link
+  toast.error(`Upload failed: ${error}`);
+  throw new Error(error);
+}
       if (response.ok) {
         const savedDocument = await response.json();
         

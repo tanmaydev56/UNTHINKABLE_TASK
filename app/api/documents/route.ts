@@ -77,10 +77,10 @@ export async function GET() {
     } finally {
       client.release();
     }
-  } catch (error) {
-    console.error('Error fetching documents:', error);
+  } catch (error:any) {
+    console.error('[documents POST]', error);
     return NextResponse.json(
-      { error: 'Failed to fetch documents' },
+      { error: error.message || 'Failed to fetch documents',stack:error.stack }, 
       { status: 500 }
     );
   }
