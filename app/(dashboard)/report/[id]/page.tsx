@@ -229,7 +229,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
          
         </div>
 
-        {/* Critical Alerts */}
+        
         {summary?.hasCriticalErrors && (
           <Card className="glass border-destructive/30 bg-destructive/10 p-4 mb-6">
             <div className="flex items-center gap-3">
