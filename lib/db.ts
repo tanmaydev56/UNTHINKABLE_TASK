@@ -1,12 +1,9 @@
-// lib/db.ts
-import dotenv from "dotenv";
-dotenv.config();
-
 import { Pool } from 'pg';
 
+// Use this single configuration
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: { rejectUnauthorized: false } // Always use SSL for Neon
 });
 
 export interface Document {
@@ -19,6 +16,8 @@ export interface Document {
   issuesFound: number;
   severity: "high" | "medium" | "low";
   status: "completed" | "in-progress" | "failed";
+  geminiReport?: any;
+  analysisCompleted?: boolean;
 }
 
 export async function getDocuments(): Promise<Document[]> {
@@ -37,13 +36,15 @@ export async function getDocuments(): Promise<Document[]> {
       updatedAt: row.updated_at,
       issuesFound: row.issues_found,
       severity: row.severity,
-      status: row.status
+      status: row.status,
+      geminiReport: row.gemini_report,
+      analysisCompleted: row.analysis_completed
     }));
   } finally {
     client.release();
   }
 }
-// In your lib/db.ts file
+
 export async function getDocumentById(id: string) {
   const client = await pool.connect();
   try {
@@ -67,11 +68,10 @@ export async function getDocumentById(id: string) {
       issuesFound: row.issues_found,
       severity: row.severity,
       status: row.status,
-      geminiReport: row.gemini_report, // Make sure this is included
-      analysisCompleted: row.analysis_completed // Make sure this is included
+      geminiReport: row.gemini_report,
+      analysisCompleted: row.analysis_completed
     };
   } finally {
     client.release();
   }
 }
-

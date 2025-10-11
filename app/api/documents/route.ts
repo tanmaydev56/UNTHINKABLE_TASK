@@ -1,14 +1,9 @@
-// app/api/documents/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { Pool } from 'pg';
+import { pool } from '@/lib/db';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
-// app/api/documents/route.ts   (and  app/api/analyze/route.ts)
-export const runtime = 'nodejs'; // ← 60 s instead of 30 s Edge
-export const maxDuration = 60;   // ← optional, up to 300 on Pro
+export const runtime = 'nodejs';
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const { fileName, language, content, issuesFound, severity, status } = await request.json();
@@ -39,10 +34,10 @@ export async function POST(request: NextRequest) {
     } finally {
       client.release();
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading document:', error);
     return NextResponse.json(
-      { error: 'Failed to upload document' },
+      { error: 'Failed to upload document: ' + error.message },
       { status: 500 }
     );
   }
@@ -69,7 +64,7 @@ export async function GET() {
         issuesFound: row.issues_found,
         severity: row.severity,
         status: row.status,
-        geminiReport: row.gemini_report, // Add this
+        geminiReport: row.gemini_report,
         analysisCompleted: row.analysis_completed
       }));
       
@@ -77,10 +72,10 @@ export async function GET() {
     } finally {
       client.release();
     }
-  } catch (error:any) {
-    console.error('[documents POST]', error);
+  } catch (error: any) {
+    console.error('[documents GET]', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch documents',stack:error.stack }, 
+      { error: error.message || 'Failed to fetch documents' }, 
       { status: 500 }
     );
   }

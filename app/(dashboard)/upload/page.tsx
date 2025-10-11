@@ -140,82 +140,90 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     }
   };
 
-  const processFileUpload = async (file: UploadedFile, originalFile: File) => {
-    try {
-      // Read file content
-      const content = await readFileContent(originalFile);
+const processFileUpload = async (file: UploadedFile, originalFile: File) => {
+  try {
+    // Read file content
+    const content = await readFileContent(originalFile);
+    
+    // Update progress to 50% (file read)
+    setUploadedFiles(prev => prev.map(f => 
+      f.id === file.id ? { ...f, progress: 50, content } : f
+    ));
+
+    console.log('Uploading to database...');
+    
+    // Upload to database
+    const response = await fetch('/api/documents', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fileName: file.name,
+        language: file.language,
+        content: content,
+        issuesFound: 0,
+        severity: "low",
+        status: "in-progress"
+      }),
+    });
+
+    console.log('Database response status:', response.status);
+    
+    if (response.ok) {
+      const savedDocument = await response.json();
+      console.log('Document saved:', savedDocument.id);
       
-      // Update progress to 50% (file read)
+      // Update progress to 75% (database saved) and store documentId
       setUploadedFiles(prev => prev.map(f => 
-        f.id === file.id ? { ...f, progress: 50, content } : f
+        f.id === file.id ? { ...f, progress: 75, documentId: savedDocument.id } : f
       ));
 
-      // Upload to database
-      const response = await fetch('/api/documents', {
+      console.log('Triggering Gemini analysis...');
+      
+      // Trigger Gemini analysis
+      const analysisResponse = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fileName: file.name,
-          language: file.language,
+          documentId: savedDocument.id,
           content: content,
-          issuesFound: 0,
-          severity: "low",
-          status: "in-progress"
+          language: file.language,
+          fileName: file.name
         }),
       });
-      if (!response.ok) {
-  const { error, stack } = await response.json();
-  console.error('Live error:', error, stack); // ← open browser console on the deployed link
-  toast.error(`Upload failed: ${error}`);
-  throw new Error(error);
-}
-      if (response.ok) {
-        const savedDocument = await response.json();
-        
-        // Update progress to 75% (database saved) and store documentId
+
+      console.log('Analysis response status:', analysisResponse.status);
+      
+      if (analysisResponse.ok) {
+        // Update progress to 100% and mark as completed
         setUploadedFiles(prev => prev.map(f => 
-          f.id === file.id ? { ...f, progress: 75, documentId: savedDocument.id } : f
+          f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
         ));
-
-        // Trigger Gemini analysis
-        const analysisResponse = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            documentId: savedDocument.id,
-            content: content,
-            language: file.language,
-            fileName: file.name
-          }),
-        });
-
-        if (analysisResponse.ok) {
-          // Update progress to 100% and mark as completed
-          setUploadedFiles(prev => prev.map(f => 
-            f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
-          ));
-          fetchUploadHistory();
-          toast.success(`File "${file.name}" analyzed successfully!`);
-          const {error } = await analysisResponse.json();
-          throw new Error(error || 'Analysis failed');
-        } else {
-          throw new Error('Analysis failed');
-        }
+        
+        // Refresh upload history
+        fetchUploadHistory();
+        toast.success(`File "${file.name}" analyzed successfully!`);
       } else {
-        throw new Error('Upload failed');
+        const errorText = await analysisResponse.text();
+        console.error('Analysis failed:', errorText);
+        throw new Error(`Analysis failed: ${errorText}`);
       }
-    } catch (error) {
-      console.error('Error uploading file:', error);
-      setUploadedFiles(prev => prev.map(f => 
-        f.id === file.id ? { ...f, status: "error" } : f
-      ));
-      toast.error(`Failed to process "${file.name}"`);
+    } else {
+      const errorText = await response.text();
+      console.error('Upload failed:', errorText);
+      throw new Error(`Upload failed: ${errorText}`);
     }
-  };
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    setUploadedFiles(prev => prev.map(f => 
+      f.id === file.id ? { ...f, status: "error" } : f
+    ));
+    toast.error(`Failed to process "${file.name}"`);
+  }
+};
 
   const readFileContent = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {

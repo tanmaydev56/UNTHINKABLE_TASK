@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { pool } from '@/lib/db';
 
-// Initialize Gemini with correct configuration
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-// app/api/documents/route.ts
+
 export const runtime = 'nodejs';
-export const maxDuration = 60; // seconds
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
     const { documentId, content, language, fileName } = await request.json();
@@ -17,12 +18,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if API key is available
     if (!process.env.GEMINI_API_KEY) {
       throw new Error('Gemini API key is not configured');
     }
 
-    // Gemini analysis prompt - make it more specific
+    // FIX: Use proper URL for Vercel
+    const getBaseUrl = () => {
+      if (process.env.VERCEL_URL) {
+        return `https://${process.env.VERCEL_URL}`;
+      }
+      if (process.env.NEXTAUTH_URL) {
+        return process.env.NEXTAUTH_URL;
+      }
+      return 'http://localhost:3000';
+    };
+
     const prompt = `
     Analyze the following ${language} code from file ${fileName} and provide a detailed code review:
 
@@ -48,36 +58,14 @@ export async function POST(request: NextRequest) {
           "lineNumber": 8,
           "codeSnippet": "const x = 5;",
           "suggestion": "Use more descriptive variable names like 'userCount' instead of 'x'"
-        },
-        {
-          "id": "2",
-          "category": "bugs",
-          "severity": "high",
-          "title": "Potential null reference",
-          "description": "Missing null check before accessing property",
-          "lineNumber": 15,
-          "codeSnippet": "return user.profile.name;",
-          "suggestion": "Add null checking: return user?.profile?.name || 'Unknown';"
         }
       ]
     }
-
-    Focus on:
-    - Code quality and best practices
-    - Potential bugs and errors
-    - Performance improvements
-    - Security vulnerabilities
-    - Readability and maintainability
-    - Modularity and code organization
-
-    Provide specific line numbers and code snippets for each suggestion.
     `;
 
     try {
-      // Use the correct model - try different model names
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash"  // Updated model name
-        
+        model: "gemini-1.5-flash"
       });
 
       console.log('Sending request to Gemini API...');
@@ -86,17 +74,14 @@ export async function POST(request: NextRequest) {
       const response = await result.response;
       const analysisText = response.text();
 
-      console.log('Received response from Gemini:', analysisText.substring(0, 200));
+      console.log('Received response from Gemini');
 
-      // Extract JSON from Gemini response
       let analysis;
       try {
-        // Try to find JSON in the response
         const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           analysis = JSON.parse(jsonMatch[0]);
         } else {
-          // If no JSON found, create a fallback analysis
           analysis = createFallbackAnalysis(content, language);
         }
       } catch (parseError) {
@@ -104,8 +89,9 @@ export async function POST(request: NextRequest) {
         analysis = createFallbackAnalysis(content, language);
       }
 
-      // Update document with Gemini analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/documents/${documentId}`, {
+      // FIX: Use the base URL function
+      const baseUrl = getBaseUrl();
+      const updateResponse = await fetch(`${baseUrl}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -120,6 +106,8 @@ export async function POST(request: NextRequest) {
       });
 
       if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('Failed to update document:', errorText);
         throw new Error('Failed to update document with analysis');
       }
 
@@ -127,11 +115,10 @@ export async function POST(request: NextRequest) {
     } catch (geminiError: any) {
       console.error('Gemini API error:', geminiError);
       
-      // Fallback analysis if Gemini fails
       const fallbackAnalysis = createFallbackAnalysis(content, language);
+      const baseUrl = getBaseUrl();
       
-      // Update document with fallback analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/documents/${documentId}`, {
+      const updateResponse = await fetch(`${baseUrl}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -147,46 +134,34 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(fallbackAnalysis);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in Gemini analysis:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze code' },
+      { error: 'Failed to analyze code: ' + error.message },
       { status: 500 }
     );
   }
 }
 
-
-// Fallback analysis function
 function createFallbackAnalysis(content: string, language: string) {
   const lines = content.split('\n');
   return {
     summary: {
       totalIssues: 2,
-      overallSeverity: "medium" as const,
+      overallSeverity: "medium",
       mainCategories: ["readability", "structure"],
       overallScore: 70
     },
     suggestions: [
       {
         id: "1",
-        category: "readability" as const,
-        severity: "medium" as const,
+        category: "readability",
+        severity: "medium",
         title: "Code structure analysis",
         description: "Basic code structure review completed",
         lineNumber: Math.min(1, lines.length),
         codeSnippet: lines[0] || "// Code content",
         suggestion: "Consider adding more comments and improving code organization"
-      },
-      {
-        id: "2",
-        category: "modularity" as const,
-        severity: "low" as const,
-        title: "Function organization",
-        description: "Review function structure and responsibilities",
-        lineNumber: Math.min(5, lines.length),
-        codeSnippet: lines[4] || "// Function definition",
-        suggestion: "Consider breaking down complex functions into smaller, focused ones"
       }
     ]
   };
