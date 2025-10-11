@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Update document with Gemini analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app/'}/api/documents/${documentId}`, {
+      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app'}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       const fallbackAnalysis = createFallbackAnalysis(content, language);
       
       // Update document with fallback analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app/'}/api/documents/${documentId}`, {
+      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app'}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
