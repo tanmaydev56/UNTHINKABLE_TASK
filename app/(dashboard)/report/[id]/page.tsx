@@ -226,10 +226,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
               </div>
             </div>
           </div>
-          <Button variant="outline" className="glass border-border/50">
-            <Download className="w-4 h-4 mr-2" />
-            Export Report
-          </Button>
+         
         </div>
 
         {/* Critical Alerts */}
