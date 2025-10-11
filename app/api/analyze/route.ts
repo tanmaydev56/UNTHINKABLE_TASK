@@ -20,99 +20,65 @@ export async function POST(request: NextRequest) {
       throw new Error('Gemini API key is not configured');
     }
 
-    // Enhanced Gemini analysis prompt
+    // Gemini analysis prompt - make it more specific
     const prompt = `
-    You are an expert code reviewer analyzing ${language} code. Provide a comprehensive code review with specific, actionable suggestions.
+    Analyze the following ${language} code from file ${fileName} and provide a detailed code review:
 
-    CODE TO REVIEW (File: ${fileName}):
-    \`\`\`${language}
+    CODE TO ANALYZE:
     ${content}
-    \`\`\`
 
-    Analyze this code thoroughly and provide feedback in this EXACT JSON format:
+    Please provide analysis in this exact JSON format only, no other text:
 
     {
       "summary": {
-        "totalIssues": <number>,
-        "overallSeverity": "high|medium|low",
-        "mainCategories": ["category1", "category2", ...],
-        "overallScore": <number-between-0-100>
+        "totalIssues": 3,
+        "overallSeverity": "medium",
+        "mainCategories": ["readability", "bugs", "modularity"],
+        "overallScore": 75
       },
       "suggestions": [
         {
-          "id": "unique-id-1",
-          "category": "readability|bugs|performance|security|modularity",
-          "severity": "high|medium|low",
-          "title": "Specific issue title",
-          "description": "Detailed explanation of the issue",
-          "lineNumber": <exact-line-number>,
-          "codeSnippet": "The specific code line(s) with the issue",
-          "suggestion": "Actionable improvement suggestion"
+          "id": "1",
+          "category": "readability",
+          "severity": "medium",
+          "title": "Improve variable naming",
+          "description": "Variable names are not descriptive enough",
+          "lineNumber": 8,
+          "codeSnippet": "const x = 5;",
+          "suggestion": "Use more descriptive variable names like 'userCount' instead of 'x'"
+        },
+        {
+          "id": "2",
+          "category": "bugs",
+          "severity": "high",
+          "title": "Potential null reference",
+          "description": "Missing null check before accessing property",
+          "lineNumber": 15,
+          "codeSnippet": "return user.profile.name;",
+          "suggestion": "Add null checking: return user?.profile?.name || 'Unknown';"
         }
       ]
     }
 
-    CRITICAL ANALYSIS AREAS:
+    Focus on:
+    - Code quality and best practices
+    - Potential bugs and errors
+    - Performance improvements
+    - Security vulnerabilities
+    - Readability and maintainability
+    - Modularity and code organization
 
-    1. CODE QUALITY & READABILITY:
-       - Meaningful variable/function names
-       - Code formatting and consistency
-       - Comment quality and documentation
-       - Code duplication
-       - Function length and complexity
-
-    2. BUGS & ERROR HANDLING:
-       - Potential runtime errors
-       - Null/undefined references
-       - Type safety issues
-       - Memory leaks
-       - Race conditions
-       - Proper error handling
-
-    3. PERFORMANCE:
-       - Inefficient algorithms
-       - Unnecessary computations
-       - Memory usage optimization
-       - Database/API call optimization
-       - Loop optimizations
-
-    4. SECURITY:
-       - Input validation
-       - Authentication/authorization
-       - Data exposure risks
-       - SQL injection possibilities
-       - XSS vulnerabilities
-       - Secure coding practices
-
-    5. ARCHITECTURE & MODULARITY:
-       - Single responsibility principle
-       - Code organization
-       - Dependency management
-       - Code reusability
-       - Separation of concerns
-
-    IMPORTANT INSTRUCTIONS:
-    - Be specific and provide exact line numbers
-    - Include the actual code snippet that has the issue
-    - Give practical, actionable suggestions
-    - Focus on the most critical issues first
-    - Consider ${language} best practices
-    - Rate severity based on impact: high=critical bugs/security, medium=code quality, low=minor improvements
-    - Overall score should reflect code quality (100=excellent, 0=very poor)
-
-    Return ONLY the JSON, no additional text or explanations.
+    Provide specific line numbers and code snippets for each suggestion.
     `;
 
     try {
+      // Use the correct model - try different model names
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          temperature: 0.2, // Lower temperature for more consistent JSON
-          maxOutputTokens: 2048,
-        }
+        model: "gemini-1.5-flash"  // Updated model name
+        
       });
 
-      console.log('Sending enhanced request to Gemini API...');
+      console.log('Sending request to Gemini API...');
       
       const result = await model.generateContent(prompt);
       const response = await result.response;
@@ -120,31 +86,23 @@ export async function POST(request: NextRequest) {
 
       console.log('Received response from Gemini:', analysisText.substring(0, 200));
 
-      // Enhanced JSON extraction with better error handling
+      // Extract JSON from Gemini response
       let analysis;
       try {
-        // Clean the response and extract JSON
-        const cleanedText = analysisText
-          .replace(/```json\s*/g, '')
-          .replace(/```\s*/g, '')
-          .trim();
-        
-        const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
+        // Try to find JSON in the response
+        const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           analysis = JSON.parse(jsonMatch[0]);
-          
-          // Validate the analysis structure
-          analysis = validateAndEnhanceAnalysis(analysis, content, language);
         } else {
-          console.warn('No JSON found in response, using fallback');
-          analysis = createEnhancedFallbackAnalysis(content, language, fileName);
+          // If no JSON found, create a fallback analysis
+          analysis = createFallbackAnalysis(content, language);
         }
       } catch (parseError) {
         console.error('Error parsing Gemini response:', parseError);
-        analysis = createEnhancedFallbackAnalysis(content, language, fileName);
+        analysis = createFallbackAnalysis(content, language);
       }
 
-      // Update document with enhanced analysis
+      // Update document with Gemini analysis
       const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
@@ -167,9 +125,10 @@ export async function POST(request: NextRequest) {
     } catch (geminiError: any) {
       console.error('Gemini API error:', geminiError);
       
-      // Enhanced fallback analysis
-      const fallbackAnalysis = createEnhancedFallbackAnalysis(content, language, fileName);
+      // Fallback analysis if Gemini fails
+      const fallbackAnalysis = createFallbackAnalysis(content, language);
       
+      // Update document with fallback analysis
       const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/documents/${documentId}`, {
         method: 'PUT',
         headers: {
@@ -195,111 +154,37 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Enhanced fallback analysis function
-function createEnhancedFallbackAnalysis(content: string, language: string, fileName: string) {
+// Fallback analysis function
+function createFallbackAnalysis(content: string, language: string) {
   const lines = content.split('\n');
-  const codeLength = lines.length;
-  
-  // Analyze basic code metrics
-  const hasFunctions = content.includes('function ') || content.includes('def ') || content.includes('class ');
-  const hasComments = content.includes('//') || content.includes('/*') || content.includes('#');
-  const hasErrorHandling = content.includes('try') || content.includes('catch') || content.includes('except');
-  
-  // Determine severity based on code characteristics
-  let overallSeverity: "high" | "medium" | "low" = "medium";
-  let overallScore = 65;
-  
-  if (codeLength > 100 && !hasComments) {
-    overallSeverity = "high";
-    overallScore = 45;
-  } else if (codeLength > 50 && !hasErrorHandling) {
-    overallSeverity = "medium";
-    overallScore = 60;
-  }
-
   return {
     summary: {
-      totalIssues: 3,
-      overallSeverity,
-      mainCategories: ["readability", "structure", "maintainability"],
-      overallScore
+      totalIssues: 2,
+      overallSeverity: "medium" as const,
+      mainCategories: ["readability", "structure"],
+      overallScore: 70
     },
     suggestions: [
       {
         id: "1",
         category: "readability" as const,
         severity: "medium" as const,
-        title: "Code Documentation Needed",
-        description: `The ${language} code in ${fileName} lacks sufficient comments and documentation, making it difficult for other developers to understand the logic and purpose.`,
-        lineNumber: Math.max(1, Math.floor(codeLength / 2)),
-        codeSnippet: lines[Math.floor(codeLength / 2)] || "// Complex logic section",
-        suggestion: "Add inline comments explaining complex logic, document function purposes, and consider adding a file header with overview documentation."
+        title: "Code structure analysis",
+        description: "Basic code structure review completed",
+        lineNumber: Math.min(1, lines.length),
+        codeSnippet: lines[0] || "// Code content",
+        suggestion: "Consider adding more comments and improving code organization"
       },
       {
         id: "2",
         category: "modularity" as const,
-        severity: hasFunctions ? "low" : "high",
-        title: hasFunctions ? "Function Organization" : "Procedural Code Structure",
-        description: hasFunctions 
-          ? "Functions could be better organized with clearer responsibilities and separation of concerns."
-          : "Code appears to be written procedurally without proper function/module separation.",
-        lineNumber: Math.min(10, codeLength),
-        codeSnippet: lines[Math.min(9, codeLength - 1)] || "// Main logic section",
-        suggestion: hasFunctions
-          ? "Refactor functions to follow single responsibility principle. Consider breaking large functions into smaller, focused ones."
-          : "Extract reusable logic into functions. Organize code into logical modules or classes based on functionality."
-      },
-      {
-        id: "3",
-        category: "bugs" as const,
-        severity: hasErrorHandling ? "low" : "medium",
-        title: hasErrorHandling ? "Error Handling Review" : "Missing Error Handling",
-        description: hasErrorHandling
-          ? "Existing error handling should be reviewed for completeness and consistency."
-          : "Code lacks proper error handling for potential runtime exceptions and edge cases.",
-        lineNumber: Math.min(5, codeLength),
-        codeSnippet: lines[Math.min(4, codeLength - 1)] || "// Potential error-prone section",
-        suggestion: hasErrorHandling
-          ? "Ensure all external calls and potential failure points have appropriate error handling. Consider consistent error logging."
-          : "Implement try-catch blocks around external API calls, file operations, and user input processing. Add validation for function parameters."
+        severity: "low" as const,
+        title: "Function organization",
+        description: "Review function structure and responsibilities",
+        lineNumber: Math.min(5, lines.length),
+        codeSnippet: lines[4] || "// Function definition",
+        suggestion: "Consider breaking down complex functions into smaller, focused ones"
       }
     ]
   };
-}
-
-// Validate and enhance the analysis structure
-function validateAndEnhanceAnalysis(analysis: any, content: string, language: string) {
-  const lines = content.split('\n');
-  
-  // Ensure summary structure
-  if (!analysis.summary) {
-    analysis.summary = {
-      totalIssues: 0,
-      overallSeverity: "medium",
-      mainCategories: ["analysis"],
-      overallScore: 50
-    };
-  }
-  
-  // Ensure suggestions array exists
-  if (!analysis.suggestions || !Array.isArray(analysis.suggestions)) {
-    analysis.suggestions = [];
-  }
-  
-  // Validate and enhance each suggestion
-  analysis.suggestions = analysis.suggestions.map((suggestion: any, index: number) => ({
-    id: suggestion.id || `suggestion-${index + 1}`,
-    category: suggestion.category || "readability",
-    severity: suggestion.severity || "medium",
-    title: suggestion.title || "Code Improvement Opportunity",
-    description: suggestion.description || "An area for code improvement has been identified.",
-    lineNumber: Math.min(Math.max(1, suggestion.lineNumber || 1), lines.length),
-    codeSnippet: suggestion.codeSnippet || lines[Math.min(Math.max(0, (suggestion.lineNumber || 1) - 1), lines.length - 1)] || "// Code section",
-    suggestion: suggestion.suggestion || "Consider reviewing and improving this code section."
-  }));
-  
-  // Update total issues count
-  analysis.summary.totalIssues = analysis.suggestions.length;
-  
-  return analysis;
 }

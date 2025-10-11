@@ -432,58 +432,65 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           </div>
 
           {/* Upload History Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="glass p-6 sticky top-24">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Clock className="w-5 h-5 text-primary" />
+         <div className="lg:col-span-1">
+  <Card className="glass p-6 sticky top-24">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="p-2 rounded-lg bg-primary/10">
+        <Clock className="w-5 h-5 text-primary" />
+      </div>
+      <div>
+        <h3 className="text-xl text-foreground font-medium">Upload History</h3>
+        <p className="text-sm text-muted-foreground">Recent file uploads</p>
+      </div>
+    </div>
+    
+    <ScrollArea className="h-[500px]">
+      {/* Loading State */}
+      {uploadHistory.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-3"></div>
+          <p className="text-muted-foreground text-sm">Loading history...</p>
+        </div>
+      )}
+
+      {/* History Items */}
+      {uploadHistory.length > 0 && (
+        <div className="space-y-3">
+          {uploadHistory.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => handleHistoryItemClick(item)}
+              className="w-full p-4 rounded-lg bg-secondary/20 border border-border/30 hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
+            >
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <File className="w-4 h-4 text-primary" />
                 </div>
-                <div>
-                  <h3 className="text-xl text-foreground font-medium">Upload History</h3>
-                  <p className="text-sm text-muted-foreground">Recent file uploads</p>
-                </div>
-              </div>
-              
-              <ScrollArea className="h-[500px]">
-                <div className="space-y-3">
-                  {uploadHistory.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleHistoryItemClick(item)}
-                      className="w-full p-4 rounded-lg bg-secondary/20 border border-border/30 hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded bg-primary/10 group-hover:bg-primary/20 transition-colors flex-shrink-0">
-                          <File className="w-4 h-4 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate mb-1">
-                            {item.fileName}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
-                            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary">
-                              {item.language}
-                            </span>
-                            <span>{item.date}</span>
-                          </div>
-                        </div>
-                        {item.status === "completed" && (
-                          <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
-                        )}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                
-                {uploadHistory.length === 0 && (
-                  <div className="text-center py-8">
-                    <File className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-50" />
-                    <p className="text-muted-foreground">No upload history yet</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate mb-1">
+                    {item.fileName}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                    <span className="px-2 py-1 rounded-full bg-primary/10 text-primary">
+                      {item.language}
+                    </span>
+                    <span>{item.date}</span>
                   </div>
+                </div>
+                {item.status === "completed" && (
+                  <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0 mt-1" />
                 )}
-              </ScrollArea>
-            </Card>
-          </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+      
+      {/* Empty State - only show when not loading and no items */}
+     
+    </ScrollArea>
+  </Card>
+</div>
         </div>
       </div>
     </div>

@@ -69,7 +69,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) 
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const router = useRouter();
-
+ 
   useEffect(() => {
     if (params.id) {
       fetchDocument(params.id as string);
@@ -95,31 +95,13 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) 
     setLoading(false);
   }
 };
+useEffect(() => {
+    if (params.id) fetchDocument(params.id as string);
+  }, [params.id]);
 
-  const downloadReport = () => {
-    if (!document) return;
-    
-    const reportData = {
-      fileName: document.fileName,
-      language: document.language,
-      analysisDate: new Date().toISOString(),
-      summary: document.geminiReport?.summary,
-      suggestions: suggestions,
-      codeContent: document.content
-    };
 
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${document.fileName}-analysis-report.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+
+
 
   if (loading) {
     return (
@@ -239,10 +221,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) 
               <span>{document.issuesFound} issues found</span>
             </div>
           </div>
-          <Button className="glow" onClick={downloadReport}>
-            <Download className="w-4 h-4 mr-2" />
-            Download Report
-          </Button>
+         
         </div>
 
         {/* Summary Cards */}
