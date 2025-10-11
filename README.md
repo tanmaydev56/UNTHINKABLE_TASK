@@ -10,7 +10,8 @@ Based on your deployed application and the code files you've shared, I'll create
 
 > AI-powered code analysis platform that provides intelligent code reviews using Google Gemini AI
 
-![Dashboard Preview](https://unthinkable-task.vercel.app/og-image.jpg)
+<img width="1901" height="972" alt="image" src="https://github.com/user-attachments/assets/193ac415-be41-47e1-997a-875a82191667" />
+
 
 ## ✨ Features
 
@@ -106,11 +107,11 @@ npm run dev
 ## 📸 Screenshots
 
 ### Dashboard
-![Dashboard](https://unthinkable-task.vercel.app/dashboard.png)
+![Dashboard](<img width="1905" height="978" alt="image" src="https://github.com/user-attachments/assets/9983cbeb-c147-4872-9ce6-58a236a4389d" />)
 *Interactive dashboard with document management and statistics*
 
 ### Code Analysis Report
-![Analysis Report](https://unthinkable-task.vercel.app/report.png)
+![Analysis Report](<img width="1897" height="973" alt="image" src="https://github.com/user-attachments/assets/f1ee5d09-ec8d-4845-8883-af48fb6cf3fb" />)
 *Detailed code analysis with line-by-line issue highlighting*
 
 
