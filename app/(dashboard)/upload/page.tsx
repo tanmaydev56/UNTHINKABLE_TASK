@@ -193,12 +193,10 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           setUploadedFiles(prev => prev.map(f => 
             f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
           ));
-          const {error } = await analysisResponse.json();
-          throw new Error(error || 'Analysis failed');
-          }
-          // Refresh upload history
           fetchUploadHistory();
           toast.success(`File "${file.name}" analyzed successfully!`);
+          const {error } = await analysisResponse.json();
+          throw new Error(error || 'Analysis failed');
         } else {
           throw new Error('Analysis failed');
         }
