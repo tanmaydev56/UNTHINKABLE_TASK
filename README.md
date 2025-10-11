@@ -2,7 +2,6 @@ Based on your deployed application and the code files you've shared, I'll create
 
 ## 🚀 **CodeSage AI - Intelligent Code Analysis Platform**
 
-```markdown
 # CodeSage AI 🚀
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
