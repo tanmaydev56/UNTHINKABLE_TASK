@@ -6,7 +6,9 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
-
+// app/api/documents/route.ts   (and  app/api/analyze/route.ts)
+export const runtime = 'nodejs'; // ← 60 s instead of 30 s Edge
+export const maxDuration = 60;   // ← optional, up to 300 on Pro
 export async function POST(request: NextRequest) {
   try {
     const { fileName, language, content, issuesFound, severity, status } = await request.json();
