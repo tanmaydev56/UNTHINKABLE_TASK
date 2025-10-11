@@ -28,7 +28,7 @@ export default function Navbar({ onNavigate }: NavbarProps) {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <button
-            onClick={() => handleNavClick("home")}
+            onClick={() => handleNavClick("/")}
             className="flex items-center gap-2 group"
           >
             <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
