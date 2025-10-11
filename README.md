@@ -1,8 +1,7 @@
-Based on your deployed application and the code files you've shared, I'll create a comprehensive GitHub README for your project. Here's what I can see from your code:
 
-## 🚀 **CodeSage AI - Intelligent Code Analysis Platform**
+## 🚀 **AI Code Review Assistant**
 
-# CodeSage AI 🚀
+
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.5-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
