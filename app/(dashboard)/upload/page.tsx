@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
-import { Upload, File, X, Clock, CheckCircle2, AlertCircle, BabyIcon, ArrowBigRight, ArrowRight, ArrowLeft } from "lucide-react";
+import { Upload, File, X, Clock, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
 
 interface UploadPageProps {
   onNavigate: (page: string) => void;
@@ -17,6 +18,8 @@ interface UploadedFile {
   size: string;
   progress: number;
   status: "uploading" | "completed" | "error";
+  content?: string;
+  language: string;
 }
 
 interface HistoryItem {
@@ -30,13 +33,69 @@ interface HistoryItem {
 export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [uploadHistory, setUploadHistory] = useState<HistoryItem[]>([]);
   const router = useRouter();
-  const uploadHistory: HistoryItem[] = [
-    { id: "1", fileName: "api-handler.js", date: "2 hours ago", language: "JavaScript", status: "completed" },
-    { id: "2", fileName: "auth.py", date: "5 hours ago", language: "Python", status: "completed" },
-    { id: "3", fileName: "UserService.java", date: "Yesterday", language: "Java", status: "completed" },
-    { id: "4", fileName: "database.sql", date: "2 days ago", language: "SQL", status: "completed" },
-  ];
+
+  // Fetch upload history on component mount
+  useState(() => {
+    fetchUploadHistory();
+  });
+
+  const fetchUploadHistory = async () => {
+    try {
+      const response = await fetch('/api/documents');
+      if (response.ok) {
+        const documents = await response.json();
+        const history: HistoryItem[] = documents.map((doc: any) => ({
+          id: doc.id,
+          fileName: doc.fileName || doc.file_name,
+          date: formatTimeAgo(doc.createdAt || doc.created_at),
+          language: doc.language,
+          status: "completed"
+        }));
+        setUploadHistory(history);
+      }
+    } catch (error) {
+      console.error('Error fetching upload history:', error);
+    }
+  };
+
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const detectLanguage = (fileName: string): string => {
+    const extension = fileName.split('.').pop()?.toLowerCase();
+    const languageMap: { [key: string]: string } = {
+      'js': 'JavaScript',
+      'jsx': 'JavaScript',
+      'ts': 'TypeScript',
+      'tsx': 'TypeScript',
+      'py': 'Python',
+      'java': 'Java',
+      'cpp': 'C++',
+      'c': 'C',
+      'go': 'Go',
+      'rb': 'Ruby',
+      'php': 'PHP',
+      'sql': 'SQL',
+      'css': 'CSS',
+      'html': 'HTML',
+      'xml': 'XML',
+      'json': 'JSON',
+      'yaml': 'YAML',
+      'yml': 'YAML'
+    };
+    return languageMap[extension || ''] || 'Unknown';
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -62,33 +121,80 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     }
   };
 
-  const handleFiles = (files: File[]) => {
+  const handleFiles = async (files: File[]) => {
     const newFiles: UploadedFile[] = files.map((file) => ({
       id: Math.random().toString(36).substr(2, 9),
       name: file.name,
       size: (file.size / 1024).toFixed(2) + " KB",
       progress: 0,
       status: "uploading" as const,
+      language: detectLanguage(file.name),
     }));
 
     setUploadedFiles((prev) => [...prev, ...newFiles]);
 
-    // Simulate upload progress
-    newFiles.forEach((file) => {
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        setUploadedFiles((prev) =>
-          prev.map((f) =>
-            f.id === file.id
-              ? { ...f, progress, status: progress >= 100 ? "completed" : "uploading" }
-              : f
-          )
-        );
-        if (progress >= 100) {
-          clearInterval(interval);
-        }
-      }, 200);
+    // Process each file
+    for (const file of newFiles) {
+      await processFileUpload(file, files.find(f => f.name === file.name)!);
+    }
+  };
+
+  const processFileUpload = async (file: UploadedFile, originalFile: File) => {
+    try {
+      // Read file content
+      const content = await readFileContent(originalFile);
+      
+      // Update progress to 50% (file read)
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === file.id ? { ...f, progress: 50, content } : f
+      ));
+
+      // Upload to database
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: file.name,
+          language: file.language,
+          content: content,
+          issuesFound: 0, // Will be calculated during analysis
+          severity: "low",
+          status: "completed"
+        }),
+      });
+
+      if (response.ok) {
+        const savedDocument = await response.json();
+        
+        // Update progress to 100% and mark as completed
+        setUploadedFiles(prev => prev.map(f => 
+          f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
+        ));
+
+        // Refresh upload history
+        fetchUploadHistory();
+        
+        toast.success(`File "${file.name}" uploaded successfully!`);
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === file.id ? { ...f, status: "error" } : f
+      ));
+      toast.error(`Failed to upload "${file.name}"`);
+    }
+  };
+
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result as string);
+      reader.onerror = (e) => reject(e);
+      reader.readAsText(file);
     });
   };
 
@@ -97,30 +203,56 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   };
 
   const analyzeCode = () => {
-    onNavigate("review");
+    if (uploadedFiles.length > 0) {
+      // Navigate to the first uploaded file's review
+      const firstFile = uploadedFiles[0];
+      // You might want to store the document ID and use it for navigation
+      onNavigate("review");
+    }
   };
 
   const resetUploads = () => {
     setUploadedFiles([]);
   };
-  const BackFun = () =>{
+
+  const BackFun = () => {
     router.push('/');
+  };
+
+  const handleHistoryItemClick = async (item: HistoryItem) => {
+    try {
+      // Fetch the specific document and navigate to its review
+      const response = await fetch(`/api/documents/${item.id}`);
+      if (response.ok) {
+        const document = await response.json();
+        // You can pass the document data or just navigate to review page
+        onNavigate("review");
+        // Alternatively, you can store the document in context or pass as prop
+      } else {
+        toast.error('Failed to load document');
+      }
+    } catch (error) {
+      toast.error('Error loading document');
     }
+  };
 
   return (
     <div className="min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" />
+      
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Upload Area */}
           <div className="lg:col-span-2 space-y-6">
-          <Button
+            <Button
               variant="outline"
-             className="flex"
+              className="flex"
               onClick={BackFun}
             >
-              
-              <ArrowLeft/>
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
             </Button>
+            
             <div className="text-center lg:text-left">
               <h1 className="text-3xl text-foreground mb-2">Upload Code Files</h1>
               <p className="text-muted-foreground text-lg">
@@ -219,16 +351,21 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                           <p className="text-sm font-medium text-foreground truncate">
                             {file.name}
                           </p>
-                          <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
-                            {file.size}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {file.language}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
+                              {file.size}
+                            </span>
+                          </div>
                         </div>
                         
                         {file.status === "uploading" && (
                           <div className="space-y-2">
                             <Progress value={file.progress} className="h-2" />
                             <p className="text-xs text-muted-foreground">
-                              Uploading... {file.progress}%
+                              {file.progress < 50 ? 'Reading file...' : 'Uploading to database...'} {file.progress}%
                             </p>
                           </div>
                         )}
@@ -236,7 +373,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                         {file.status === "completed" && (
                           <div className="flex items-center gap-2 text-sm text-accent">
                             <CheckCircle2 className="w-4 h-4" />
-                            <span>Ready for analysis</span>
+                            <span>Uploaded successfully</span>
                           </div>
                         )}
                         
@@ -269,7 +406,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                     size="lg"
                   >
                     {uploadedFiles.some(f => f.status === "uploading") ? (
-                      <>Analyzing Code...</>
+                      <>Uploading Files...</>
                     ) : (
                       <>Analyze Code ({uploadedFiles.length} files)</>
                     )}
@@ -297,7 +434,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                   {uploadHistory.map((item) => (
                     <button
                       key={item.id}
-                      onClick={() => onNavigate("review")}
+                      onClick={() => handleHistoryItemClick(item)}
                       className="w-full p-4 rounded-lg bg-secondary/20 border border-border/30 hover:border-primary/50 hover:bg-primary/5 transition-all text-left group"
                     >
                       <div className="flex items-start gap-3">

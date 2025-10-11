@@ -1,11 +1,28 @@
-import { useState } from "react";
+// app/(dashboard)/report/[id]/page.tsx
+"use client";
+import { useEffect, useState } from "react";
 import { Download, ChevronDown, ChevronRight, Code2, Boxes, Sparkles, Bug, FileCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 
+import toast from "react-hot-toast";
+
+interface Document {
+  id: string;
+  fileName: string;
+  language: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  issuesFound: number;
+  severity: "high" | "medium" | "low";
+  status: "completed" | "in-progress" | "failed";
+}
 interface ReviewReportPageProps {
   onNavigate: (page: string) => void;
 }
@@ -22,14 +39,73 @@ interface Suggestion {
 }
 
 export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) {
-  const [openSuggestions, setOpenSuggestions] = useState<string[]>(["1"]);
 
   const toggleSuggestion = (id: string) => {
     setOpenSuggestions((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
+  const [openSuggestions, setOpenSuggestions] = useState<string[]>(["1"]);
+  const [document, setDocument] = useState<Document | null>(null);
+  const [loading, setLoading] = useState(true);
+  const params = useParams();
+  const router = useRouter();
 
+  useEffect(() => {
+    if (params.id) {
+      fetchDocument(params.id as string);
+    }
+  }, [params.id]);
+
+  const fetchDocument = async (id: string) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/documents/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setDocument(data);
+      } else {
+        toast.error('Failed to fetch document');
+        router.push('/dashboard');
+      }
+    } catch (error) {
+      toast.error('Error fetching document');
+      router.push('/dashboard');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  if (loading) {
+    return (
+      <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading document...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!document) {
+    return (
+      <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-12">
+            <h1 className="text-2xl text-foreground mb-4">Document not found</h1>
+            <Button onClick={() => router.push('/dashboard')}>
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const suggestions: Suggestion[] = [
     {
       id: "1",
@@ -117,7 +193,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) 
     readability: suggestions.filter((s) => s.category === "readability"),
     bugs: suggestions.filter((s) => s.category === "bugs"),
   };
-
+  
   const mockCode = `import { useState, useEffect } from 'react';
 
 function UserDashboard() {
@@ -157,18 +233,18 @@ function UserDashboard() {
     <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl text-foreground mb-2">AI Code Review Report</h1>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <FileCode className="w-4 h-4" />
-                <span>api-handler.js</span>
+                <span>{document.fileName}</span>
               </div>
               <span>•</span>
-              <span>JavaScript</span>
+              <span>{document.language}</span>
               <span>•</span>
-              <span>4 issues found</span>
+              <span>{document.issuesFound} issues found</span>
             </div>
           </div>
           <Button className="glow">
@@ -234,7 +310,7 @@ function UserDashboard() {
 
           {/* AI Suggestions Panel */}
           <div className="lg:col-span-1">
-            <Card className="glass p-6 border-border/50 sticky top-24">
+            <Card className="glass p-6 border-border/50 sticky ">
               <h3 className="text-foreground mb-4">AI Suggestions</h3>
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="grid w-full grid-cols-4 mb-4">

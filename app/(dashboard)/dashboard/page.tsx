@@ -1,6 +1,15 @@
+// app/(dashboard)/dashboard/page.tsx
 "use client";
-import { useState } from "react";
-import { Search, Filter, Eye, Trash2, Calendar, Code2, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import {
+  Search,
+  Filter,
+  Eye,
+  Trash2,
+  Calendar,
+  Code2,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,44 +21,66 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
-interface DashboardPageProps {
-  onNavigate: (page: string) => void;
-}
-
-interface Review {
+interface Document {
   id: string;
   fileName: string;
   language: string;
-  date: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
   issuesFound: number;
   severity: "high" | "medium" | "low";
   status: "completed" | "in-progress" | "failed";
 }
 
-export default function DashboardPage({ onNavigate }: DashboardPageProps) {
+export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterBy, setFilterBy] = useState("all");
-  const [reviews, setReviews] = useState<Review[]>([
-    { id: "1", fileName: "api-handler.js", language: "JavaScript", date: "Oct 9, 2025", issuesFound: 4, severity: "high", status: "completed" },
-    { id: "2", fileName: "auth.py", language: "Python", date: "Oct 8, 2025", issuesFound: 2, severity: "medium", status: "completed" },
-    { id: "3", fileName: "UserService.java", language: "Java", date: "Oct 7, 2025", issuesFound: 6, severity: "high", status: "completed" },
-    { id: "4", fileName: "database.sql", language: "SQL", date: "Oct 6, 2025", issuesFound: 1, severity: "low", status: "completed" },
-    { id: "5", fileName: "components.tsx", language: "TypeScript", date: "Oct 5, 2025", issuesFound: 3, severity: "medium", status: "completed" },
-    { id: "6", fileName: "styles.css", language: "CSS", date: "Oct 4, 2025", issuesFound: 0, severity: "low", status: "completed" },
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/documents');
+      if (response.ok) {
+        const data = await response.json();
+        setDocuments(data);
+      } else {
+        toast.error('Failed to fetch documents');
+      }
+    } catch (error) {
+      toast.error('Error fetching documents');
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "high": return "bg-destructive/20 text-destructive border-destructive/30";
-      case "medium": return "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30";
-      case "low": return "bg-accent/20 text-accent border-accent/30";
-      default: return "bg-muted";
+      case "high":
+        return "bg-destructive/20 text-destructive border-destructive/30";
+      case "medium":
+        return "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30";
+      case "low":
+        return "bg-accent/20 text-accent border-accent/30";
+      default:
+        return "bg-muted";
     }
   };
-  const handleReiview = () => {
-    onNavigate("report");
-  }
+
+  const handleReview = (id: string) => {
+    router.push(`/report/${id}`);
+  };
+
   const getLanguageColor = (language: string) => {
     const colors: { [key: string]: string } = {
       JavaScript: "bg-[#F7DF1E]/20 text-[#F7DF1E] border-[#F7DF1E]/30",
@@ -62,67 +93,138 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
     return colors[language] || "bg-muted";
   };
 
-  const filteredReviews = reviews.filter((review) => {
-    const matchesSearch = review.fileName.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterBy === "all" || review.language.toLowerCase() === filterBy.toLowerCase();
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const filteredDocuments = documents.filter((doc) => {
+    const matchesSearch = doc.fileName
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesFilter =
+      filterBy === "all" ||
+      doc.language.toLowerCase() === filterBy.toLowerCase();
     return matchesSearch && matchesFilter;
   });
 
-  const handleDelete = (id: string) => {
-    const reviewToDelete = reviews.find(r => r.id === id);
-    if (!reviewToDelete) return;
+  const handleDelete = async (id: string) => {
+    const documentToDelete = documents.find((d) => d.id === id);
+    if (!documentToDelete) return;
 
-    // Remove from state immediately
-    setReviews(prev => prev.filter(r => r.id !== id));
+    try {
+      const response = await fetch(`/api/documents/${id}`, {
+        method: 'DELETE',
+      });
 
-    // Show toast with Undo
-    toast(
-      (t) => (
-        <div className="flex items-center gap-2">
-          Review "{reviewToDelete.fileName}" deleted
-          <button
-            onClick={() => {
-              setReviews(prev => [...prev, reviewToDelete].sort((a,b)=>Number(a.id)-Number(b.id)));
-              toast.dismiss(t.id);
-            }}
-            className="underline ml-2"
-          >
-            Undo
-          </button>
-        </div>
-      ),
-      { duration: 5000 }
-    );
+      if (response.ok) {
+        setDocuments((prev) => prev.filter((d) => d.id !== id));
+        toast(
+          (t) => (
+            <div className="flex items-center gap-2">
+              Document "{documentToDelete.fileName}" deleted
+              <button
+                onClick={async () => {
+                  try {
+                    const restoreResponse = await fetch('/api/documents', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(documentToDelete),
+                    });
+                    
+                    if (restoreResponse.ok) {
+                      const restoredDoc = await restoreResponse.json();
+                      setDocuments((prev) => [...prev, restoredDoc].sort(
+                        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+                      ));
+                    }
+                  } catch (error) {
+                    toast.error('Failed to restore document');
+                  }
+                  toast.dismiss(t.id);
+                }}
+                className="underline ml-2"
+              >
+                Undo
+              </button>
+            </div>
+          ),
+          { duration: 5000 }
+        );
+      } else {
+        toast.error('Failed to delete document');
+      }
+    } catch (error) {
+      toast.error('Error deleting document');
+    }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading documents...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen  pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" reverseOrder={false} />
 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl text-foreground mb-2">Review Dashboard</h1>
-          <p className="text-muted-foreground">View and manage all your code reviews</p>
+          <h1 className="text-3xl text-foreground mb-2">
+            Review Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            View and manage all your code reviews
+          </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="glass p-6 border-border/50">
-            <div className="text-2xl text-foreground mb-1">{reviews.length}</div>
-            <div className="text-sm text-muted-foreground">Total Reviews</div>
+            <div className="text-2xl text-foreground mb-1">
+              {documents.length}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Total Reviews
+            </div>
           </Card>
           <Card className="glass p-6 border-border/50">
-            <div className="text-2xl text-primary mb-1">{reviews.filter(r => r.status === "completed").length}</div>
+            <div className="text-2xl text-primary mb-1">
+              {documents.filter((r) => r.status === "completed").length}
+            </div>
             <div className="text-sm text-muted-foreground">Completed</div>
           </Card>
           <Card className="glass p-6 border-border/50">
-            <div className="text-2xl text-destructive mb-1">{reviews.filter(r => r.severity === "high").length}</div>
-            <div className="text-sm text-muted-foreground">High Priority</div>
+            <div className="text-2xl text-destructive mb-1">
+              {documents.filter((r) => r.severity === "high").length}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              High Priority
+            </div>
           </Card>
           <Card className="glass p-6 border-border/50">
-            <div className="text-2xl text-accent mb-1">{reviews.reduce((sum,r)=>sum+r.issuesFound,0)}</div>
-            <div className="text-sm text-muted-foreground">Total Issues</div>
+            <div className="text-2xl text-accent mb-1">
+              {documents.reduce((sum, r) => sum + r.issuesFound, 0)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Total Issues
+            </div>
           </Card>
         </div>
 
@@ -135,61 +237,110 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                 type="text"
                 placeholder="Search by file name..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 glass border-border/50"
               />
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="glass border-border/50">
+                <Button
+                  variant="outline"
+                  className="glass border-border/50"
+                >
                   <Filter className="w-4 h-4 mr-2" />
                   {filterBy === "all" ? "All Languages" : filterBy}
                   <ChevronDown className="w-4 h-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="glass">
-                <DropdownMenuItem onClick={() => setFilterBy("all")}>All Languages</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterBy("javascript")}>JavaScript</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterBy("python")}>Python</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterBy("java")}>Java</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterBy("typescript")}>TypeScript</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterBy("all")}>
+                  All Languages
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterBy("javascript")}>
+                  JavaScript
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterBy("python")}>
+                  Python
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterBy("java")}>
+                  Java
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setFilterBy("typescript")}>
+                  TypeScript
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </Card>
 
-        {/* Reviews List */}
+        {/* Documents List */}
         <div className="space-y-4">
-          {filteredReviews.map(review => (
-            <Card key={review.id} className="glass p-6 border-border/50 hover:border-primary/50 transition-all">
+          {filteredDocuments.map((document) => (
+            <Card
+              key={document.id}
+              className="glass p-6 border-border/50 hover:border-primary/50 transition-all cursor-pointer"
+              onClick={() => handleReview(document.id)}
+            >
               <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                <div className="p-3 rounded-lg bg-primary/10 w-fit"><Code2 className="w-6 h-6 text-primary" /></div>
+                <div className="p-3 rounded-lg bg-primary/10 w-fit">
+                  <Code2 className="w-6 h-6 text-primary" />
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
-                      <h3 className="text-foreground mb-2">{review.fileName}</h3>
+                      <h3 className="text-foreground mb-2">
+                        {document.fileName}
+                      </h3>
                       <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant="outline" className={`text-xs ${getLanguageColor(review.language)}`}>{review.language}</Badge>
-                        <Badge variant="outline" className={`text-xs ${getSeverityColor(review.severity)}`}>{review.severity}</Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getLanguageColor(
+                            document.language
+                          )}`}
+                        >
+                          {document.language}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${getSeverityColor(
+                            document.severity
+                          )}`}
+                        >
+                          {document.severity}
+                        </Badge>
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Calendar className="w-3 h-3" /><span>{review.date}</span>
+                          <Calendar className="w-3 h-3" />
+                          <span>{formatDate(document.createdAt)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <div><span className="text-foreground">{review.issuesFound}</span> issues found</div>
-                    <div>Status: <span className="text-accent">{review.status}</span></div>
+                    <div>
+                      <span className="text-foreground">
+                        {document.issuesFound}
+                      </span>{" "}
+                      issues found
+                    </div>
+                    <div>
+                      Status:{" "}
+                      <span className="text-accent">{document.status}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="glass border-border/50" onClick={handleReiview}>
-                    <Eye className="w-4 h-4 mr-2" />View Report
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <Button
+                    variant="outline"
+                    className="glass border-border/50"
+                    onClick={() => handleReview(document.id)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Report
                   </Button>
                   <Button
                     variant="outline"
                     className="glass border-border/50 hover:border-destructive/50 hover:bg-destructive/10"
-                    onClick={() => handleDelete(review.id)}
+                    onClick={() => handleDelete(document.id)}
                   >
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
@@ -199,13 +350,20 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           ))}
         </div>
 
-        {filteredReviews.length === 0 && (
+        {filteredDocuments.length === 0 && !loading && (
           <Card className="glass p-12 text-center border-border/50">
             <div className="inline-flex p-4 rounded-full bg-muted/20 mb-4">
               <Search className="w-8 h-8 text-muted-foreground" />
             </div>
-            <h3 className="text-foreground mb-2">No reviews found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+            <h3 className="text-foreground mb-2">
+              {documents.length === 0 ? "No documents yet" : "No documents found"}
+            </h3>
+            <p className="text-muted-foreground">
+              {documents.length === 0 
+                ? "Upload your first code file to get started" 
+                : "Try adjusting your search or filter criteria"
+              }
+            </p>
           </Card>
         )}
       </div>
