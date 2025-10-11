@@ -172,23 +172,23 @@ const processFileUpload = async (file: UploadedFile, originalFile: File) => {
     
     if (response.ok) {
       const savedDocument = await response.json();
-      console.log('Document saved:', savedDocument.id);
+      console.log('Document saved with ID:', savedDocument.id);
       
       // Update progress to 75% (database saved) and store documentId
       setUploadedFiles(prev => prev.map(f => 
         f.id === file.id ? { ...f, progress: 75, documentId: savedDocument.id } : f
       ));
 
-      console.log('Triggering Gemini analysis...');
+      console.log('Triggering Gemini analysis for document:', savedDocument.id);
       
-      // Trigger Gemini analysis
+      // Trigger Gemini analysis - MAKE SURE THIS STRUCTURE MATCHES
       const analysisResponse = await fetch('/api/analyze', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          documentId: savedDocument.id,
+          documentId: savedDocument.id, // This must match the backend expectation
           content: content,
           language: file.language,
           fileName: file.name

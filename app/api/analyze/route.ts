@@ -1,28 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { pool } from '@/lib/db';
 
-// Initialize Gemini with correct configuration
+// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-// app/api/documents/route.ts
+
 export const runtime = 'nodejs';
-export const maxDuration = 60; // seconds
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   try {
-    const { documentId, content, language, fileName } = await request.json();
+    const body = await request.json();
+    console.log('Analyze API received body:', { 
+      hasDocumentId: !!body.documentId, 
+      hasContent: !!body.content,
+      documentId: body.documentId,
+      fileName: body.fileName,
+      language: body.language
+    });
 
-    if (!documentId || !content) {
+    const { documentId, content, language, fileName } = body;
+
+    // Better validation with detailed error messages
+    if (!documentId) {
       return NextResponse.json(
-        { error: 'Document ID and content are required' },
+        { error: 'Document ID is required' },
+        { status: 400 }
+      );
+    }
+
+    if (!content) {
+      return NextResponse.json(
+        { error: 'Content is required' },
         { status: 400 }
       );
     }
 
     // Check if API key is available
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error('Gemini API key is not configured');
+      console.error('Gemini API key is missing');
+      return NextResponse.json(
+        { error: 'Gemini API key is not configured' },
+        { status: 500 }
+      );
     }
 
-    // Gemini analysis prompt - make it more specific
+    console.log('Starting Gemini analysis for document:', documentId);
+
+    // Gemini analysis prompt
     const prompt = `
     Analyze the following ${language} code from file ${fileName} and provide a detailed code review:
 
@@ -48,16 +73,6 @@ export async function POST(request: NextRequest) {
           "lineNumber": 8,
           "codeSnippet": "const x = 5;",
           "suggestion": "Use more descriptive variable names like 'userCount' instead of 'x'"
-        },
-        {
-          "id": "2",
-          "category": "bugs",
-          "severity": "high",
-          "title": "Potential null reference",
-          "description": "Missing null check before accessing property",
-          "lineNumber": 15,
-          "codeSnippet": "return user.profile.name;",
-          "suggestion": "Add null checking: return user?.profile?.name || 'Unknown';"
         }
       ]
     }
@@ -74,10 +89,8 @@ export async function POST(request: NextRequest) {
     `;
 
     try {
-      // Use the correct model - try different model names
       const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash"  // Updated model name
-        
+        model: "gemini-1.5-flash"
       });
 
       console.log('Sending request to Gemini API...');
@@ -86,17 +99,17 @@ export async function POST(request: NextRequest) {
       const response = await result.response;
       const analysisText = response.text();
 
-      console.log('Received response from Gemini:', analysisText.substring(0, 200));
+      console.log('Received Gemini response, length:', analysisText.length);
 
       // Extract JSON from Gemini response
       let analysis;
       try {
-        // Try to find JSON in the response
         const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           analysis = JSON.parse(jsonMatch[0]);
+          console.log('Successfully parsed Gemini JSON response');
         } else {
-          // If no JSON found, create a fallback analysis
+          console.log('No JSON found in response, using fallback');
           analysis = createFallbackAnalysis(content, language);
         }
       } catch (parseError) {
@@ -104,26 +117,40 @@ export async function POST(request: NextRequest) {
         analysis = createFallbackAnalysis(content, language);
       }
 
-      // Update document with Gemini analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app'}/api/documents/${documentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          geminiReport: analysis,
-          analysisCompleted: true,
-          issuesFound: analysis.summary.totalIssues,
-          severity: analysis.summary.overallSeverity,
-          status: 'completed'
-        }),
-      });
+      // Update document with Gemini analysis - use direct database update
+      const client = await pool.connect();
+      try {
+        const updateResult = await client.query(
+          `UPDATE documents 
+           SET gemini_report = $1, 
+               analysis_completed = $2, 
+               issues_found = $3, 
+               severity = $4, 
+               status = $5,
+               updated_at = NOW()
+           WHERE id = $6 
+           RETURNING *`,
+          [
+            analysis,
+            true,
+            analysis.summary?.totalIssues || 0,
+            analysis.summary?.overallSeverity || 'medium',
+            'completed',
+            documentId
+          ]
+        );
 
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update document with analysis');
+        if (updateResult.rows.length === 0) {
+          throw new Error('Document not found for update');
+        }
+
+        console.log('Successfully updated document with analysis');
+
+        return NextResponse.json(analysis);
+      } finally {
+        client.release();
       }
 
-      return NextResponse.json(analysis);
     } catch (geminiError: any) {
       console.error('Gemini API error:', geminiError);
       
@@ -131,31 +158,40 @@ export async function POST(request: NextRequest) {
       const fallbackAnalysis = createFallbackAnalysis(content, language);
       
       // Update document with fallback analysis
-      const updateResponse = await fetch(`${process.env.NEXTAUTH_URL || 'https://unthinkable-task.vercel.app'}/api/documents/${documentId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          geminiReport: fallbackAnalysis,
-          analysisCompleted: true,
-          issuesFound: fallbackAnalysis.summary.totalIssues,
-          severity: fallbackAnalysis.summary.overallSeverity,
-          status: 'completed'
-        }),
-      });
+      const client = await pool.connect();
+      try {
+        await client.query(
+          `UPDATE documents 
+           SET gemini_report = $1, 
+               analysis_completed = $2, 
+               issues_found = $3, 
+               severity = $4, 
+               status = $5,
+               updated_at = NOW()
+           WHERE id = $6`,
+          [
+            fallbackAnalysis,
+            true,
+            fallbackAnalysis.summary.totalIssues,
+            fallbackAnalysis.summary.overallSeverity,
+            'completed',
+            documentId
+          ]
+        );
+      } finally {
+        client.release();
+      }
 
       return NextResponse.json(fallbackAnalysis);
     }
-  } catch (error) {
-    console.error('Error in Gemini analysis:', error);
+  } catch (error: any) {
+    console.error('Error in analyze route:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze code' },
+      { error: 'Failed to analyze code: ' + error.message },
       { status: 500 }
     );
   }
 }
-
 
 // Fallback analysis function
 function createFallbackAnalysis(content: string, language: string) {
@@ -163,15 +199,15 @@ function createFallbackAnalysis(content: string, language: string) {
   return {
     summary: {
       totalIssues: 2,
-      overallSeverity: "medium" as const,
+      overallSeverity: "medium",
       mainCategories: ["readability", "structure"],
       overallScore: 70
     },
     suggestions: [
       {
         id: "1",
-        category: "readability" as const,
-        severity: "medium" as const,
+        category: "readability",
+        severity: "medium",
         title: "Code structure analysis",
         description: "Basic code structure review completed",
         lineNumber: Math.min(1, lines.length),
@@ -180,8 +216,8 @@ function createFallbackAnalysis(content: string, language: string) {
       },
       {
         id: "2",
-        category: "modularity" as const,
-        severity: "low" as const,
+        category: "modularity",
+        severity: "low",
         title: "Function organization",
         description: "Review function structure and responsibilities",
         lineNumber: Math.min(5, lines.length),
