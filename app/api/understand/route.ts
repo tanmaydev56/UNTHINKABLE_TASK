@@ -25,14 +25,14 @@ export async function POST(request: NextRequest) {
     const prompt = createDetailedPrompt(content, language, fileName, isAIMLCode);
 
   const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash-latest', // ← fixed name
+  model: 'gemini-2.5-flash-latest', // ← fixed name
   generationConfig: {
     temperature: 0.7,
     maxOutputTokens: 4000,
   },
 });
 
-    console.log('Sending detailed analysis request to Gemini-1.5-flash');
+    console.log('Sending detailed analysis request to gemini-2.5-flash');
     const result = await model.generateContent(prompt);
     const analysisText = result.response.text();
     console.log('Received detailed Gemini response');
