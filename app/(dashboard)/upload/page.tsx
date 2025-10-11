@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Upload, File, X, Clock, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
+import { Badge } from "@/components/ui/badge";
 
 interface UploadPageProps {
   onNavigate: (page: string) => void;
@@ -20,6 +21,7 @@ interface UploadedFile {
   status: "uploading" | "completed" | "error";
   content?: string;
   language: string;
+  documentId?: string;
 }
 
 interface HistoryItem {
@@ -35,11 +37,6 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [uploadHistory, setUploadHistory] = useState<HistoryItem[]>([]);
   const router = useRouter();
-
-  // Fetch upload history on component mount
-  useState(() => {
-    fetchUploadHistory();
-  });
 
   const fetchUploadHistory = async () => {
     try {
@@ -59,6 +56,10 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
       console.error('Error fetching upload history:', error);
     }
   };
+
+  useEffect(() => {
+    fetchUploadHistory();
+  }, []);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -159,24 +160,46 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           fileName: file.name,
           language: file.language,
           content: content,
-          issuesFound: 0, // Will be calculated during analysis
+          issuesFound: 0,
           severity: "low",
-          status: "completed"
+          status: "in-progress"
         }),
       });
 
       if (response.ok) {
         const savedDocument = await response.json();
         
-        // Update progress to 100% and mark as completed
+        // Update progress to 75% (database saved) and store documentId
         setUploadedFiles(prev => prev.map(f => 
-          f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
+          f.id === file.id ? { ...f, progress: 75, documentId: savedDocument.id } : f
         ));
 
-        // Refresh upload history
-        fetchUploadHistory();
-        
-        toast.success(`File "${file.name}" uploaded successfully!`);
+        // Trigger Gemini analysis
+        const analysisResponse = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            documentId: savedDocument.id,
+            content: content,
+            language: file.language,
+            fileName: file.name
+          }),
+        });
+
+        if (analysisResponse.ok) {
+          // Update progress to 100% and mark as completed
+          setUploadedFiles(prev => prev.map(f => 
+            f.id === file.id ? { ...f, progress: 100, status: "completed" } : f
+          ));
+          
+          // Refresh upload history
+          fetchUploadHistory();
+          toast.success(`File "${file.name}" analyzed successfully!`);
+        } else {
+          throw new Error('Analysis failed');
+        }
       } else {
         throw new Error('Upload failed');
       }
@@ -185,7 +208,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
       setUploadedFiles(prev => prev.map(f => 
         f.id === file.id ? { ...f, status: "error" } : f
       ));
-      toast.error(`Failed to upload "${file.name}"`);
+      toast.error(`Failed to process "${file.name}"`);
     }
   };
 
@@ -203,11 +226,13 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   };
 
   const analyzeCode = () => {
-    if (uploadedFiles.length > 0) {
-      // Navigate to the first uploaded file's review
-      const firstFile = uploadedFiles[0];
-      // You might want to store the document ID and use it for navigation
-      onNavigate("review");
+    // Navigate to the first completed file's report
+    const completedFile = uploadedFiles.find(f => f.status === "completed");
+    if (completedFile && completedFile.documentId) {
+      router.push(`/report/${completedFile.documentId}`);
+    } else {
+      // If no documentId is available, go to dashboard
+      router.push('/dashboard');
     }
   };
 
@@ -220,20 +245,8 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
   };
 
   const handleHistoryItemClick = async (item: HistoryItem) => {
-    try {
-      // Fetch the specific document and navigate to its review
-      const response = await fetch(`/api/documents/${item.id}`);
-      if (response.ok) {
-        const document = await response.json();
-        // You can pass the document data or just navigate to review page
-        onNavigate("review");
-        // Alternatively, you can store the document in context or pass as prop
-      } else {
-        toast.error('Failed to load document');
-      }
-    } catch (error) {
-      toast.error('Error loading document');
-    }
+    // Navigate directly to the report page
+    router.push(`/report/${item.id}`);
   };
 
   return (
@@ -402,13 +415,15 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                   <Button
                     className="flex-1 glow"
                     onClick={analyzeCode}
-                    disabled={uploadedFiles.some((f) => f.status !== "completed")}
+                    disabled={uploadedFiles.length === 0 || uploadedFiles.every((f) => f.status !== "completed")}
                     size="lg"
                   >
                     {uploadedFiles.some(f => f.status === "uploading") ? (
                       <>Uploading Files...</>
+                    ) : uploadedFiles.some(f => f.status === "completed") ? (
+                      <>View Analysis ({uploadedFiles.filter(f => f.status === "completed").length} files)</>
                     ) : (
-                      <>Analyze Code ({uploadedFiles.length} files)</>
+                      <>Analyze Code</>
                     )}
                   </Button>
                 </div>

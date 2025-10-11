@@ -1,7 +1,10 @@
 // lib/db.ts
+import dotenv from "dotenv";
+dotenv.config();
+
 import { Pool } from 'pg';
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
@@ -40,16 +43,19 @@ export async function getDocuments(): Promise<Document[]> {
     client.release();
   }
 }
-
-export async function getDocumentById(id: string): Promise<Document | null> {
+// In your lib/db.ts file
+export async function getDocumentById(id: string) {
   const client = await pool.connect();
   try {
     const result = await client.query(
-      'SELECT * FROM documents WHERE id = $1',
+      `SELECT * FROM documents WHERE id = $1`,
       [id]
     );
-    if (result.rows.length === 0) return null;
     
+    if (result.rows.length === 0) {
+      return null;
+    }
+
     const row = result.rows[0];
     return {
       id: row.id,
@@ -60,9 +66,12 @@ export async function getDocumentById(id: string): Promise<Document | null> {
       updatedAt: row.updated_at,
       issuesFound: row.issues_found,
       severity: row.severity,
-      status: row.status
+      status: row.status,
+      geminiReport: row.gemini_report, // Make sure this is included
+      analysisCompleted: row.analysis_completed // Make sure this is included
     };
   } finally {
     client.release();
   }
 }
+

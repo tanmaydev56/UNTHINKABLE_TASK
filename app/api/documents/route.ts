@@ -66,7 +66,9 @@ export async function GET() {
         updatedAt: row.updated_at,
         issuesFound: row.issues_found,
         severity: row.severity,
-        status: row.status
+        status: row.status,
+        geminiReport: row.gemini_report, // Add this
+        analysisCompleted: row.analysis_completed
       }));
       
       return NextResponse.json(documents);
