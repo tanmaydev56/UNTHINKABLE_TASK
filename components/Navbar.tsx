@@ -1,6 +1,6 @@
 "use client";
 
-import { Code2, Menu, X } from "lucide-react";
+import { Code2, Menu, X, BookOpen } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
 
@@ -40,16 +40,31 @@ export default function Navbar({ onNavigate }: NavbarProps) {
           </button>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className={`px-4 py-2 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-secondary/50`}
-              >
-                {item.label}
-              </button>
-            ))}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Regular Navigation Items */}
+            <div className="flex items-center gap-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id)}
+                  className={`px-4 py-2 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-secondary/50`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Separator */}
+            <div className="h-6 w-px bg-border mx-2"></div>
+
+            {/* Code Understand Feature Button - Styled Differently */}
+            {/* <Button
+              onClick={() => handleNavClick("code-understand")}
+              className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <BookOpen className="w-4 h-4" />
+              Understand Code
+            </Button> */}
           </div>
 
           {/* Mobile menu button */}
@@ -80,6 +95,15 @@ export default function Navbar({ onNavigate }: NavbarProps) {
                   {item.label}
                 </button>
               ))}
+              
+              {/* Mobile Code Understand Button - Also Styled Differently */}
+              {/* <Button
+                onClick={() => handleNavClick("code-understand")}
+                className="flex items-center gap-2 justify-center bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 mt-2"
+              >
+                <BookOpen className="w-4 h-4" />
+                Understand Code
+              </Button> */}
             </div>
           </div>
         )}
