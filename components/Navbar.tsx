@@ -1,27 +1,34 @@
 "use client";
 
-import { Code2, Menu } from "lucide-react";
+import { Code2, Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { useState } from "react";
 
 interface NavbarProps {
-
   onNavigate: (page: string) => void;
 }
 
-export default function Navbar({  onNavigate }: NavbarProps) {
+export default function Navbar({ onNavigate }: NavbarProps) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   const navItems = [
     { id: "upload", label: "Upload" },
-    {id: "dashboard", label: "Dashboard" },
+    { id: "dashboard", label: "Dashboard" },
     { id: "settings", label: "Settings" },
   ];
 
+  const handleNavClick = (page: string) => {
+    onNavigate(page);
+    setMobileMenuOpen(false);
+  };
+
   return (
-  <nav className="fixed top-0 left-0 right-0 z-[9999] bg-[#0f172a]/50 backdrop-blur-lg border border-[#1e293b]/30 rounded-lg shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-[9999] bg-[#0f172a]/50 backdrop-blur-lg border border-[#1e293b]/30 rounded-lg shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <button
-            onClick={() => onNavigate("home")}
+            onClick={() => handleNavClick("home")}
             className="flex items-center gap-2 group"
           >
             <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
@@ -37,11 +44,8 @@ export default function Navbar({  onNavigate }: NavbarProps) {
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                
-                     "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                }`}
+                onClick={() => handleNavClick(item.id)}
+                className={`px-4 py-2 rounded-lg transition-all text-muted-foreground hover:text-foreground hover:bg-secondary/50`}
               >
                 {item.label}
               </button>
@@ -49,10 +53,36 @@ export default function Navbar({  onNavigate }: NavbarProps) {
           </div>
 
           {/* Mobile menu button */}
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="w-5 h-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
           </Button>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-[#1e293b]/30 mt-2 pb-4">
+            <div className="flex flex-col space-y-2 pt-4">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item.id)}
+                  className="px-4 py-3 rounded-lg text-left text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all"
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
