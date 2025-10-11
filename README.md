@@ -107,11 +107,11 @@ npm run dev
 ## 📸 Screenshots
 
 ### Dashboard
-![Dashboard](<img width="1905" height="978" alt="image" src="https://github.com/user-attachments/assets/9983cbeb-c147-4872-9ce6-58a236a4389d" />)
+<img width="1905" height="978" alt="image" src="https://github.com/user-attachments/assets/9983cbeb-c147-4872-9ce6-58a236a4389d" />
 *Interactive dashboard with document management and statistics*
 
 ### Code Analysis Report
-![Analysis Report](<img width="1897" height="973" alt="image" src="https://github.com/user-attachments/assets/f1ee5d09-ec8d-4845-8883-af48fb6cf3fb" />)
+<img width="1897" height="973" alt="image" src="https://github.com/user-attachments/assets/f1ee5d09-ec8d-4845-8883-af48fb6cf3fb" />
 *Detailed code analysis with line-by-line issue highlighting*
 
 
