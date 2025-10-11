@@ -6,83 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import toast, { Toaster } from "react-hot-toast";
+import { CodeExplanation, UploadedFile } from "@/lib/types";
 // Update these interfaces in your component
-interface CodeExplanation {
-  highLevelOverview: string;
-  detailedBreakdown: DetailedBreakdown[];
-  keyConcepts: KeyConcept[];
-  pipelineStages?: string[];
-  programFlow?: string[];
-  potentialIssues: PotentialIssue[];
-  keyTakeaways: string[];
-  difficulty: "beginner" | "intermediate" | "advanced";
-  estimatedLearningTime: string;
-  glossary: GlossaryItem[];
-}
-
-interface DetailedBreakdown {
-  section: string;
-  lineNumbers: string;
-  whatItDoes: string;
-  whyItMatters: string;
-  conceptsUsed: string[];
-  codeSnippet: string;
-}
-
-interface KeyConcept {
-  name: string;
-  simpleDefinition: string;
-  technicalDefinition: string;
-  whyImportant: string;
-  realWorldAnalogy: string;
-  examplesInCode: string[];
-}
-
-interface PotentialIssue {
-  issue: string;
-  impact: string;
-  suggestion: string;
-}
-
-interface GlossaryItem {
-  term: string;
-  simpleDefinition: string;
-}
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: string;
-  progress: number;
-  status: "uploading" | "completed" | "error";
-  content?: string;
-  language: string;
-  explanation?: CodeExplanation;
-}
-
-interface CodeExplanation {
-  summary: string;
-  concepts: Concept[];
-  breakdown: CodeBreakdown[];
-  keyTakeaways: string[];
-  difficulty: "beginner" | "intermediate" | "advanced";
-  estimatedLearningTime: string;
-}
-
-interface Concept {
-  name: string;
-  description: string;
-  importance: "high" | "medium" | "low";
-  examples: string[];
-}
-
-interface CodeBreakdown {
-  section: string;
-  lineNumbers: string;
-  explanation: string;
-  purpose: string;
-}
 
 export default function CodeUnderstandPage() {
   const [isDragging, setIsDragging] = useState(false);

@@ -10,63 +10,15 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { DashboardDocument, ReviewReportPageProps } from "@/lib/types";
 
-interface Document {
-  id: string;
-  fileName: string;
-  language: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  issuesFound: number;
-  severity: "high" | "medium" | "low";
-  status: "completed" | "in-progress" | "failed";
-  geminiReport?: {
-    summary: {
-      totalIssues: number;
-      overallSeverity: "high" | "medium" | "low";
-      mainCategories: string[];
-      overallScore: number;
-      hasCriticalErrors: boolean;
-      hasRuntimeErrors: boolean;
-      hasLogicalErrors: boolean;
-    };
-    suggestions: Array<{
-      id: string;
-      category: "logic" | "syntax" | "performance" | "security" | "structure" | "maintainability" | "best_practice" | "debug_code" | "design_issue";
-      severity: "high" | "medium" | "low";
-      title: string;
-      description: string;
-      lineNumber: number;
-      codeSnippet: string;
-      suggestion: string;
-      errorType: string;
-      potentialImpact: string;
-    }>;
-    codeQuality?: {
-      readability: number;
-      maintainability: number;
-      efficiency: number;
-      security: number;
-    };
-    executionAnalysis?: {
-      willCompile: boolean;
-      willRun: boolean;
-      hasInfiniteLoops: boolean;
-      hasMemoryIssues: boolean;
-      potentialOutput: string;
-    };
-  };
-  analysisCompleted?: boolean;
-}
 
-interface ReviewReportPageProps {
-  onNavigate: (page: string) => void;
-}
 
-export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps) {
+
+
+export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps ) {
   const [openSuggestions, setOpenSuggestions] = useState<string[]>(["1"]);
-  const [document, setDocument] = useState<Document | null>(null);
+  const [document, setDocument] = useState<DashboardDocument | null>(null);
   const [loading, setLoading] = useState(true);
   const params = useParams();
   const router = useRouter();

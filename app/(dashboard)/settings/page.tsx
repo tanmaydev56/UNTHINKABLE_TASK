@@ -9,11 +9,10 @@ import { Separator } from "@radix-ui/react-separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "next-themes";
+import { SettingsPageProps } from "@/lib/types";
 
 
-interface SettingsPageProps {
-  onNavigate: (page: string) => void;
-}
+
 
 export default function SettingsPage({ onNavigate }: SettingsPageProps) {
   

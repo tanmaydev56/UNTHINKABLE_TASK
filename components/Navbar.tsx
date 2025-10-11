@@ -3,10 +3,9 @@
 import { Code2, Menu, X, BookOpen } from "lucide-react";
 import { Button } from "./ui/button";
 import { useState } from "react";
+import { NavbarProps } from "@/lib/types";
 
-interface NavbarProps {
-  onNavigate: (page: string) => void;
-}
+
 
 export default function Navbar({ onNavigate }: NavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

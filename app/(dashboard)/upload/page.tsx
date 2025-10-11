@@ -8,29 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
+import { HistoryItem, UploadedFile, UploadPageProps } from "@/lib/types";
 
-interface UploadPageProps {
-  onNavigate: (page: string) => void;
-}
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: string;
-  progress: number;
-  status: "uploading" | "completed" | "error";
-  content?: string;
-  language: string;
-  documentId?: string;
-}
-
-interface HistoryItem {
-  id: string;
-  fileName: string;
-  date: string;
-  language: string;
-  status: "completed" | "pending";
-}
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [isDragging, setIsDragging] = useState(false);

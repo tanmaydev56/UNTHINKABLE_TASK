@@ -22,18 +22,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
+import { Document } from "@/lib/types";
 
-interface Document {
-  id: string;
-  fileName: string;
-  language: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  issuesFound: number;
-  severity: "high" | "medium" | "low";
-  status: "completed" | "in-progress" | "failed";
-}
+
 
 export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
