@@ -485,8 +485,7 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
           ))}
         </div>
       )}
-      
-      {/* Empty State - only show when not loading and no items */}
+     
      
     </ScrollArea>
   </Card>
