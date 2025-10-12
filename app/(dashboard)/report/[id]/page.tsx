@@ -14,9 +14,6 @@ import { DashboardDocument, ReviewReportPageProps } from "@/lib/types";
 import { getCategoryColor, getErrorTypeColor, getSeverityColor } from "@/lib/utils";
 
 
-
-
-
 export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps ) {
   const [openSuggestions, setOpenSuggestions] = useState<string[]>(["1"]);
   const [document, setDocument] = useState<DashboardDocument | null>(null);

@@ -1,6 +1,8 @@
 import { clsx, type ClassValue } from "clsx"
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge"
+import { HistoryItem } from "./types";
 
 export const getLanguageColor = (language: string) => {
     const colors: { [key: string]: string } = {
@@ -20,7 +22,53 @@ export const getLanguageColor = (language: string) => {
       year: 'numeric'
     });
   };
+const router = useRouter();
+  export  const BackFun = () => {
+    router.push('/');
+  };
 
+
+
+ export const handleHistoryItemClick = async (item: HistoryItem) => {
+    // Navigate directly to the report page
+    router.push(`/report/${item.id}`);
+  };
+ export   const formatTimeAgo = (dateString: string) => {
+     const date = new Date(dateString);
+     const now = new Date();
+     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+     
+     if (diffInSeconds < 60) return 'Just now';
+     if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+     if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+   };
+ 
+  export  const detectLanguage = (fileName: string): string => {
+     const extension = fileName.split('.').pop()?.toLowerCase();
+     const languageMap: { [key: string]: string } = {
+       'js': 'JavaScript',
+       'jsx': 'JavaScript',
+       'ts': 'TypeScript',
+       'tsx': 'TypeScript',
+       'py': 'Python',
+       'java': 'Java',
+       'cpp': 'C++',
+       'c': 'C',
+       'go': 'Go',
+       'rb': 'Ruby',
+       'php': 'PHP',
+       'sql': 'SQL',
+       'css': 'CSS',
+       'html': 'HTML',
+       'xml': 'XML',
+       'json': 'JSON',
+       'yaml': 'YAML',
+       'yml': 'YAML'
+     };
+     return languageMap[extension || ''] || 'Unknown';
+   };
  
 
 

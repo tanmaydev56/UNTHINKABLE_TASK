@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { HistoryItem, UploadedFile, UploadPageProps } from "@/lib/types";
+import { BackFun, detectLanguage, formatTimeAgo, handleHistoryItemClick } from "@/lib/utils";
 
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
@@ -40,42 +41,6 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     fetchUploadHistory();
   }, []);
 
-  const formatTimeAgo = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
-  const detectLanguage = (fileName: string): string => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    const languageMap: { [key: string]: string } = {
-      'js': 'JavaScript',
-      'jsx': 'JavaScript',
-      'ts': 'TypeScript',
-      'tsx': 'TypeScript',
-      'py': 'Python',
-      'java': 'Java',
-      'cpp': 'C++',
-      'c': 'C',
-      'go': 'Go',
-      'rb': 'Ruby',
-      'php': 'PHP',
-      'sql': 'SQL',
-      'css': 'CSS',
-      'html': 'HTML',
-      'xml': 'XML',
-      'json': 'JSON',
-      'yaml': 'YAML',
-      'yml': 'YAML'
-    };
-    return languageMap[extension || ''] || 'Unknown';
-  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -232,14 +197,7 @@ const processFileUpload = async (file: UploadedFile, originalFile: File) => {
     setUploadedFiles([]);
   };
 
-  const BackFun = () => {
-    router.push('/');
-  };
-
-  const handleHistoryItemClick = async (item: HistoryItem) => {
-    // Navigate directly to the report page
-    router.push(`/report/${item.id}`);
-  };
+ 
 
   return (
     <div className="min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8">
