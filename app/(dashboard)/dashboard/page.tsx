@@ -23,6 +23,7 @@ import {
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Document } from "@/lib/types";
+import { formatDate, getLanguageColor, getSeverityColor } from "@/lib/utils";
 
 
 
@@ -55,43 +56,15 @@ export default function DashboardPage() {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "bg-destructive/20 text-destructive border-destructive/30";
-      case "medium":
-        return "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30";
-      case "low":
-        return "bg-accent/20 text-accent border-accent/30";
-      default:
-        return "bg-muted";
-    }
-  };
+
 
   const handleReview = (id: string) => {
     router.push(`/report/${id}`);
   };
 
-  const getLanguageColor = (language: string) => {
-    const colors: { [key: string]: string } = {
-      JavaScript: "bg-[#F7DF1E]/20 text-[#F7DF1E] border-[#F7DF1E]/30",
-      Python: "bg-[#3776AB]/20 text-[#3776AB] border-[#3776AB]/30",
-      Java: "bg-[#007396]/20 text-[#007396] border-[#007396]/30",
-      TypeScript: "bg-[#3178C6]/20 text-[#3178C6] border-[#3178C6]/30",
-      SQL: "bg-primary/20 text-primary border-primary/30",
-      CSS: "bg-[#264DE4]/20 text-[#264DE4] border-[#264DE4]/30",
-    };
-    return colors[language] || "bg-muted";
-  };
+  
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
+ 
   const filteredDocuments = documents.filter((doc) => {
     const matchesSearch = doc.fileName
       .toLowerCase()

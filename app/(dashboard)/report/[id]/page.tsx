@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { DashboardDocument, ReviewReportPageProps } from "@/lib/types";
+import { getCategoryColor, getErrorTypeColor, getSeverityColor } from "@/lib/utils";
 
 
 
@@ -34,6 +35,27 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
       fetchDocument(params.id as string);
     }
   }, [params.id]);
+
+     const getSuggestionIcon = (category: string) => {
+    switch (category) {
+      case "logic":
+        return <Code2 className="w-5 h-5" />;
+      case "syntax":
+        return <FileCode className="w-5 h-5" />;
+      case "performance":
+        return <Zap className="w-5 h-5" />;
+      case "security":
+        return <Shield className="w-5 h-5" />;
+      case "structure":
+        return <Boxes className="w-5 h-5" />;
+      case "maintainability":
+        return <Sparkles className="w-5 h-5" />;
+      case "bugs":
+        return <Bug className="w-5 h-5" />;
+      default:
+        return <Code2 className="w-5 h-5" />;
+    }
+  };
 
   const fetchDocument = async (id: string) => {
     try {
@@ -109,73 +131,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
   const codeQuality = document.geminiReport?.codeQuality;
   const executionAnalysis = document.geminiReport?.executionAnalysis;
 
-  const getSuggestionIcon = (category: string) => {
-    switch (category) {
-      case "logic":
-        return <Code2 className="w-5 h-5" />;
-      case "syntax":
-        return <FileCode className="w-5 h-5" />;
-      case "performance":
-        return <Zap className="w-5 h-5" />;
-      case "security":
-        return <Shield className="w-5 h-5" />;
-      case "structure":
-        return <Boxes className="w-5 h-5" />;
-      case "maintainability":
-        return <Sparkles className="w-5 h-5" />;
-      case "bugs":
-        return <Bug className="w-5 h-5" />;
-      default:
-        return <Code2 className="w-5 h-5" />;
-    }
-  };
-
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case "high":
-        return "bg-destructive/20 text-destructive border-destructive/30";
-      case "medium":
-        return "bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/30";
-      case "low":
-        return "bg-accent/20 text-accent border-accent/30";
-      default:
-        return "bg-muted";
-    }
-  };
-
-  const getErrorTypeColor = (errorType: string) => {
-    switch (errorType) {
-      case "logical_error":
-        return "bg-purple-500/20 text-purple-500 border-purple-500/30";
-      case "syntax_error":
-        return "bg-red-500/20 text-red-500 border-red-500/30";
-      case "runtime_error":
-        return "bg-orange-500/20 text-orange-500 border-orange-500/30";
-      case "best_practice":
-        return "bg-blue-500/20 text-blue-500 border-blue-500/30";
-      default:
-        return "bg-gray-500/20 text-gray-500 border-gray-500/30";
-    }
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "logic":
-        return "bg-purple-500/20 text-purple-500";
-      case "syntax":
-        return "bg-red-500/20 text-red-500";
-      case "performance":
-        return "bg-orange-500/20 text-orange-500";
-      case "security":
-        return "bg-green-500/20 text-green-500";
-      case "structure":
-        return "bg-blue-500/20 text-blue-500";
-      case "maintainability":
-        return "bg-indigo-500/20 text-indigo-500";
-      default:
-        return "bg-gray-500/20 text-gray-500";
-    }
-  };
+ 
 
   const groupedSuggestions = {
     logic: suggestions.filter((s) => s.category === "logic"),
