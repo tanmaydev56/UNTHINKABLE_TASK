@@ -61,7 +61,7 @@ export default function CodeUnderstandPage() {
 
   const processFileUnderstanding = async (file: UploadedFile, originalFile: File) => {
     try {
-      // Read file content
+      // Read file conte
       const content = await readFileContent(originalFile);
       
       
