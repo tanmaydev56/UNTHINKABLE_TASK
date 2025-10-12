@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { HistoryItem, UploadedFile, UploadPageProps } from "@/lib/types";
-import { BackFun, detectLanguage, formatTimeAgo, handleHistoryItemClick } from "@/lib/utils";
+import {  detectLanguage, formatTimeAgo } from "@/lib/utils";
 
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
@@ -46,7 +46,16 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     e.preventDefault();
     setIsDragging(true);
   };
+  const BackFun = () => {
+    router.push('/');
+  };
 
+
+
+  const handleHistoryItemClick = async (item: HistoryItem) => {
+    // Navigate directly to the report page
+    router.push(`/report/${item.id}`);
+  };
   const handleDragLeave = () => {
     setIsDragging(false);
   };

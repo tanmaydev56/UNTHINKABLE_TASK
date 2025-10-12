@@ -22,17 +22,8 @@ export const getLanguageColor = (language: string) => {
       year: 'numeric'
     });
   };
-const router = useRouter();
-  export  const BackFun = () => {
-    router.push('/');
-  };
 
-
-
- export const handleHistoryItemClick = async (item: HistoryItem) => {
-    // Navigate directly to the report page
-    router.push(`/report/${item.id}`);
-  };
+  
  export   const formatTimeAgo = (dateString: string) => {
      const date = new Date(dateString);
      const now = new Date();
