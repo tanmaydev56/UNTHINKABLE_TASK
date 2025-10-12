@@ -11,8 +11,14 @@ import { Progress } from "@/components/ui/progress";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { DashboardDocument, ReviewReportPageProps } from "@/lib/types";
-import { getCategoryColor, getErrorTypeColor, getSeverityColor } from "@/lib/utils";
 
+import { 
+  getCategoryColor, 
+  getErrorTypeColor, 
+  getSeverityColor,
+} from "@/lib/utils";
+import { getSuggestionIcon } from "@/lib/icons-utils";
+import { QualityScoreCard } from "@/lib/quality-utils";
 
 export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps ) {
   const [openSuggestions, setOpenSuggestions] = useState<string[]>(["1"]);
@@ -33,26 +39,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
     }
   }, [params.id]);
 
-     const getSuggestionIcon = (category: string) => {
-    switch (category) {
-      case "logic":
-        return <Code2 className="w-5 h-5" />;
-      case "syntax":
-        return <FileCode className="w-5 h-5" />;
-      case "performance":
-        return <Zap className="w-5 h-5" />;
-      case "security":
-        return <Shield className="w-5 h-5" />;
-      case "structure":
-        return <Boxes className="w-5 h-5" />;
-      case "maintainability":
-        return <Sparkles className="w-5 h-5" />;
-      case "bugs":
-        return <Bug className="w-5 h-5" />;
-      default:
-        return <Code2 className="w-5 h-5" />;
-    }
-  };
+   
 
   const fetchDocument = async (id: string) => {
     try {
@@ -140,15 +127,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
     bugs: suggestions.filter((s) => s.category === "bugs"),
   };
 
-  const QualityScoreCard = ({ title, score, max = 10 }: { title: string; score: number; max?: number }) => (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="text-muted-foreground">{title}</span>
-        <span className="text-foreground font-medium">{score}/{max}</span>
-      </div>
-      <Progress value={(score / max) * 100} className="h-2" />
-    </div>
-  );
+
 
   return (
     <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">

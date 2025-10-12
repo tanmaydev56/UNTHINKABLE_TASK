@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { pool } from '@/lib/db';
 
-// Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export const runtime = 'nodejs';
@@ -20,23 +19,18 @@ export async function POST(request: NextRequest) {
     });
 
     const { documentId, content, language, fileName } = body;
-
-    // Better validation with detailed error messages
     if (!documentId) {
       return NextResponse.json(
         { error: 'Document ID is required' },
         { status: 400 }
       );
     }
-
     if (!content) {
       return NextResponse.json(
         { error: 'Content is required' },
         { status: 400 }
       );
-    }
-
-    // Check if API key is available
+    }    
     if (!process.env.GEMINI_API_KEY) {
       console.error('Gemini API key is missing');
       return NextResponse.json(
@@ -44,10 +38,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-
     console.log('Starting Gemini analysis for document:', documentId);
 
-    // Enhanced Gemini analysis prompt with logic checking
+   
     const prompt = `
     CRITICALLY ANALYZE the following ${language} code from file ${fileName} for LOGICAL ERRORS, SYNTAX ISSUES, and POTENTIAL BUGS.
 
@@ -140,7 +133,6 @@ export async function POST(request: NextRequest) {
     BE VERY CRITICAL and THOROUGH. Don't just review style - actually analyze if the code will work correctly.
     Flag ANY potential issues that could cause runtime errors, logical errors, or unexpected behavior.
     `;
-
     try {
       const model = genAI.getGenerativeModel({ 
         model: "gemini-2.5-flash",
@@ -148,24 +140,17 @@ export async function POST(request: NextRequest) {
           temperature: 0.1, 
         }
       });
-
       console.log('Sending request to Gemini API for deep code analysis...');
-      
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const analysisText = response.text();
-
       console.log('Received Gemini response, length:', analysisText.length);
-
-      // Extract JSON from Gemini response
       let analysis;
       try {
         const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           analysis = JSON.parse(jsonMatch[0]);
           console.log('Successfully parsed Gemini JSON response');
-          
-          // Enhance analysis with additional checks
           analysis = enhanceWithStaticAnalysis(analysis, content, language);
         } else {
           console.log('No JSON found in response, using enhanced fallback');
@@ -176,7 +161,7 @@ export async function POST(request: NextRequest) {
         analysis = createEnhancedFallbackAnalysis(content, language);
       }
 
-      // Update document with Gemini analysis - use direct database update
+      
       const client = await pool.connect();
       try {
         const updateResult = await client.query(

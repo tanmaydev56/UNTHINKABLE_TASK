@@ -9,8 +9,9 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { HistoryItem, UploadedFile, UploadPageProps } from "@/lib/types";
-import {  detectLanguage, formatTimeAgo } from "@/lib/utils";
 
+import { detectLanguage, formatTimeAgo } from "@/lib/utils";
+import { readFileContent } from "@/lib/files-utils";
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
   const [isDragging, setIsDragging] = useState(false);
@@ -178,14 +179,7 @@ const processFileUpload = async (file: UploadedFile, originalFile: File) => {
   }
 };
 
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = (e) => reject(e);
-      reader.readAsText(file);
-    });
-  };
+
 
   const removeFile = (id: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
