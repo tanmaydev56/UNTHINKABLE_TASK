@@ -9,8 +9,8 @@ import { useRouter } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 import { Badge } from "@/components/ui/badge";
 import { HistoryItem, UploadedFile, UploadPageProps } from "@/lib/types";
-
-import { detectLanguage, formatTimeAgo } from "@/lib/utils";
+import { formatTimeAgo } from "@/lib/date-utils";
+import { detectLanguage } from "@/lib/files-utils";
 import { readFileContent } from "@/lib/files-utils";
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {

@@ -11,12 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { useParams, useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { DashboardDocument, ReviewReportPageProps } from "@/lib/types";
-
-import { 
-  getCategoryColor, 
-  getErrorTypeColor, 
-  getSeverityColor,
-} from "@/lib/utils";
+import { getCategoryColor,getSeverityColor,getErrorTypeColor } from "@/lib/colors-utils";
 import { getSuggestionIcon } from "@/lib/icons-utils";
 import { QualityScoreCard } from "@/lib/quality-utils";
 

@@ -8,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import toast, { Toaster } from "react-hot-toast";
 import { CodeExplanation, UploadedFile } from "@/lib/types";
+import { detectLanguage, readFileContent } from "@/lib/files-utils";
 // Update these interfaces in your component
 
 export default function CodeUnderstandPage() {
@@ -16,15 +17,7 @@ export default function CodeUnderstandPage() {
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const detectLanguage = (fileName: string): string => {
-    const extension = fileName.split('.').pop()?.toLowerCase();
-    const languageMap: { [key: string]: string } = {
-      'js': 'JavaScript', 'jsx': 'JavaScript', 'ts': 'TypeScript', 'tsx': 'TypeScript',
-      'py': 'Python', 'java': 'Java', 'cpp': 'C++', 'c': 'C', 'go': 'Go',
-      'rb': 'Ruby', 'php': 'PHP', 'sql': 'SQL', 'css': 'CSS', 'html': 'HTML',
-    };
-    return languageMap[extension || ''] || 'Unknown';
-  };
+  
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -122,14 +115,7 @@ export default function CodeUnderstandPage() {
     }
   };
 
-  const readFileContent = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target?.result as string);
-      reader.onerror = (e) => reject(e);
-      reader.readAsText(file);
-    });
-  };
+  
 
   const removeFile = (id: string) => {
     setUploadedFiles((prev) => prev.filter((f) => f.id !== id));
