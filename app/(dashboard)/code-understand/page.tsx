@@ -64,7 +64,7 @@ export default function CodeUnderstandPage() {
       // Read file content
       const content = await readFileContent(originalFile);
       
-      // Update progress to 50% (file read)
+      
       setUploadedFiles(prev => prev.map(f => 
         f.id === file.id ? { ...f, progress: 50, content } : f
       ));
