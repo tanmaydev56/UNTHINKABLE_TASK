@@ -23,7 +23,9 @@ import {
 import toast, { Toaster } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { Document } from "@/lib/types";
-import { formatDate, getLanguageColor, getSeverityColor } from "@/lib/utils";
+import { formatDate } from "@/lib/date-utils";
+import { getLanguageColor } from "@/lib/colors-utils";
+import {   getSeverityColor } from "@/lib/utils";
 
 
 

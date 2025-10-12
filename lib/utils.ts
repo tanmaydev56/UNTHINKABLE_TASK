@@ -4,24 +4,8 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge"
 import { HistoryItem } from "./types";
 
-export const getLanguageColor = (language: string) => {
-    const colors: { [key: string]: string } = {
-      JavaScript: "bg-[#F7DF1E]/20 text-[#F7DF1E] border-[#F7DF1E]/30",
-      Python: "bg-[#3776AB]/20 text-[#3776AB] border-[#3776AB]/30",
-      Java: "bg-[#007396]/20 text-[#007396] border-[#007396]/30",
-      TypeScript: "bg-[#3178C6]/20 text-[#3178C6] border-[#3178C6]/30",
-      SQL: "bg-primary/20 text-primary border-primary/30",
-      CSS: "bg-[#264DE4]/20 text-[#264DE4] border-[#264DE4]/30",
-    };
-    return colors[language] || "bg-muted";
-  };
-  export  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+
+  
 
   
  export   const formatTimeAgo = (dateString: string) => {
