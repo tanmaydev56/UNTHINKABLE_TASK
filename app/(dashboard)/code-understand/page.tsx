@@ -90,7 +90,7 @@ export default function CodeUnderstandPage() {
         const explanation = await response.json();
         console.log('Explanation received:', explanation);
         
-        // Update progress to 100% and mark as completed
+        
         setUploadedFiles(prev => prev.map(f => 
           f.id === file.id ? { ...f, progress: 100, status: "completed", explanation } : f
         ));
