@@ -203,7 +203,7 @@ const processFileUpload = async (file: UploadedFile, originalFile: File) => {
  
 
   return (
-    <div className="min-h-screen pt-24 pb-24 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen pt-24 pb-28 px-4 sm:px-6 lg:px-8">
       <Toaster position="top-right" />
       
       <div className="max-w-7xl mx-auto">

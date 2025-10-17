@@ -73,7 +73,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
 
   if (!document) {
     return (
-      <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen  pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <h1 className="text-2xl text-foreground mb-4">Document not found</h1>
@@ -88,7 +88,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
 
   if (!document.analysisCompleted) {
     return (
-      <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen  pt-24 pb-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
@@ -125,7 +125,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
 
 
   return (
-    <div className="min-h-screen animated-gradient pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen  pt-24 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
@@ -298,7 +298,7 @@ export default function ReviewReportPage({ onNavigate }: ReviewReportPageProps )
 
           {/* Right Column - AI Suggestions Panel */}
           <div className="lg:col-span-1">
-            <Card className="glass p-6 border-border/50 sticky top-24">
+            <Card className="glass p-6 border-border/50 ">
               <h3 className="text-foreground mb-4">Deep Analysis Results</h3>
               
               {/* Execution Summary */}
