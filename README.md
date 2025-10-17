@@ -137,24 +137,44 @@ The platform currently supports deep analysis for:
 ## 🏗️ Project Structure
 
 ```
-codesage-ai/
-├── app/                    # Next.js 15 App Router
-│   ├── (dashboard)/       # Dashboard routes
-│   │   ├── dashboard/
-│   │   └── report/[id]/
-│   ├── api/              # API routes
-│   │   ├── analyze/
-│   │   ├── documents/
-│   │   └── documents/[id]/
-│   └── layout.tsx        # Root layout
-├── components/           # React components
-│   ├── ui/              # Shadcn/UI components
-│   └── dashboard/       # Dashboard components
-├── lib/                 # Utility libraries
-│   ├── db.ts           # Database configuration
-│   ├── types.ts        # TypeScript definitions
-│   └── utils.ts        # Utility functions
-└── public/             # Static assets
+📁 UNTHINKABLETASKCODERIEVEWAPP/
+├─ 📁 app/                          # Next.js 15 App Router
+│  ├─ 📁 (auth)/                    # Route group for auth pages
+│  │  ├─ 📄 login/page.tsx          # /login
+│  │  └─ 📄 register/page.tsx       # /register
+│  ├─ 📁 (dashboard)/               # Route group for dashboard
+│  │  ├─ 📁 code-understand/        # /code-understand
+│  │  ├─ 📁 dashboard/              # /dashboard
+│  │  ├─ 📁 report/[id]/            # /report/:id
+│  │  ├─ 📁 settings/               # /settings
+│  │  ├─ 📁 upload/                 # /upload
+│  │  ├─ 📄 layout.tsx              # Shared layout for dashboard group
+│  │  └─ 📄 page.tsx                # Default page for dashboard group
+│  ├─ 📁 api/                       # API routes
+│  │  ├─ 📁 analyze/                # /api/analyze
+│  │  ├─ 📁 documents/              # /api/documents
+│  │  │  └─ 📁 [id]/                # /api/documents/:id
+│  │  └─ 📁 understand/             # /api/understand
+│  ├─ 📄 layout.tsx                 # Root layout
+│  ├─ 📄 page.tsx                   # Home page
+│  ├─ 📄 globals.css                # Global styles
+│  └─ 📄 favicon.ico                # App icon
+├─ 📁 components/                    # Reusable React components
+│  ├─ 📁 ui/                         # Shadcn/UI components
+│  │  └─ 📄 codeExplaination.tsx    # Custom UI component
+│  └─ 📄 Navbar.tsx                 # Navigation bar
+├─ 📁 lib/                           # Utility libraries
+│  ├─ 📄 colors-utils.ts            # Color utilities
+│  ├─ 📄 date-utils.ts              # Date helpers
+│  ├─ 📄 db.ts                      # Database configuration
+│  ├─ 📄 files-utils.ts             # File helpers
+│  ├─ 📄 icons-utils.tsx            # Icon helpers
+│  ├─ 📄 quality-utils.tsx          # Quality checks
+│  ├─ 📄 types.ts                   # TypeScript definitions
+│  └─ 📄 utils.ts                   # General utilities
+├─ 📁 public/                        # Static assets
+│  └─ 📄 eny/aitianare              # Sample static file
+└─ 📄 node_modules/                  # Dependencies (auto-generated)
 ```
 
 ## 🎯 Usage
